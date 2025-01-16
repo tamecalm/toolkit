@@ -1,7 +1,3 @@
-logging
-pathlib
 psutil
 pytube
-subprocess
-sys
-time
+pathlib
