@@ -2,3 +2,6 @@
 2025-01-16 14:32:24, Failed to run network_speed_test.py
 2025-01-16 14:36:30, Failed to run port_scanner.py
 2025-01-16 14:41:16, Failed to run port_scanner.py
+2025-01-16 14:46:54, Failed to run wifi_analyzer.py
+2025-01-16 14:52:42, Failed to run wifi_analyzer.py
+2025-01-16 14:53:42, Failed to run port_scanner.py
