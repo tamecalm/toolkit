@@ -1,154 +1,139 @@
+import subprocess
+import sys
 import os
 import platform
 import psutil
-import subprocess
-import shutil
-import time
+import logging
+from shutil import which
+from colorama import Fore, Style
 
-# Define theme colors
-class Colors:
-    DARK_GREEN = "\033[1;32m"
-    DARK_CYAN = "\033[1;36m"
-    DARK_RED = "\033[1;31m"
-    DARK_BOLD = "\033[1m"
-    DARK_RESET = "\033[0m"
+# Set up logging configuration
+LOG_FILE = "data.log"
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-# Logger class for color-coded logs and detailed file logging
-class Logger:
-    LOG_FILE = "data.log"
+def log_and_print(message, level="INFO"):
+    """Log message to file and print to terminal."""
+    if level == "ERROR":
+        logging.error(message)
+        print(Fore.RED + f"[ERROR] {message}" + Style.RESET_ALL)
+    elif level == "WARNING":
+        logging.warning(message)
+        print(Fore.YELLOW + f"[WARNING] {message}" + Style.RESET_ALL)
+    else:
+        logging.info(message)
+        print(Fore.CYAN + f"[INFO] {message}" + Style.RESET_ALL)
 
-    @staticmethod
-    def log(message, level="INFO"):
-        color = {
-            "INFO": Colors.DARK_CYAN,
-            "WARNING": Colors.DARK_BOLD,
-            "ERROR": Colors.DARK_RED
-        }.get(level, Colors.DARK_RESET)
+def detect_environment_and_install():
+    """Detect the environment and install required tools if necessary."""
+    try:
+        log_and_print("Detecting environment...", level="INFO")
 
-        formatted_message = f"{color}[{level}] {message}{Colors.DARK_RESET}"
-        print(formatted_message)
-
-        with open(Logger.LOG_FILE, "a") as log_file:
-            log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} [{level}] {message}\n")
-
-# Detect the environment and distribution
-class Environment:
-    @staticmethod
-    def detect():
+        # Detect platform
         system = platform.system().lower()
-        distro = platform.linux_distribution()[0].lower() if system == "linux" else None
+        log_and_print(f"Operating System: {system}", level="INFO")
 
         if system == "linux":
-            if distro in ["ubuntu", "debian"]:
-                return "debian"
-            elif distro in ["fedora", "centos", "red hat"]:
-                return "fedora"
-            elif distro in ["arch", "manjaro"]:
-                return "arch"
-        elif system == "windows":
-            return "windows"
+            # Check for Termux environment
+            if "com.termux" in os.environ.get("PREFIX", ""):
+                log_and_print("Termux environment detected. Installing necessary tools...", level="INFO")
+                subprocess.run(["pkg", "install", "-y", "procps"], check=True)
+            else:
+                # Check Linux distribution for package manager
+                distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
+                if "ubuntu" in distro or "debian" in distro:
+                    log_and_print("Ubuntu/Debian detected. Installing necessary tools...", level="INFO")
+                    subprocess.run(["sudo", "apt", "install", "-y", "procps", "net-tools"], check=True)
+                elif "arch" in distro:
+                    log_and_print("Arch Linux detected. Installing necessary tools...", level="INFO")
+                    subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "procps-ng", "net-tools"], check=True)
+                elif "fedora" in distro or "redhat" in distro:
+                    log_and_print("Fedora/RedHat detected. Installing necessary tools...", level="INFO")
+                    subprocess.run(["sudo", "dnf", "install", "-y", "procps-ng", "net-tools"], check=True)
+                else:
+                    log_and_print("Unsupported Linux distribution. Please install tools manually.", level="ERROR")
+                    sys.exit(1)
+
         elif system == "darwin":
-            return "macos"
-        elif system == "android":
-            return "termux"
+            # macOS
+            log_and_print("macOS detected. Installing necessary tools via Homebrew...", level="INFO")
+            subprocess.run(["brew", "install", "procps"], check=True)
 
-        Logger.log("Unsupported environment detected!", "ERROR")
-        return None
+        elif system == "windows":
+            # Windows
+            log_and_print("Windows detected. No additional installation required.", level="INFO")
 
-# Install dependencies based on environment
-class DependencyInstaller:
-    @staticmethod
-    def install_dependencies():
-        env = Environment.detect()
-        if env == "debian":
-            commands = ["sudo apt update", "sudo apt install -y python3-psutil"]
-        elif env == "fedora":
-            commands = ["sudo dnf update -y", "sudo dnf install -y python3-psutil"]
-        elif env == "arch":
-            commands = ["sudo pacman -Syu --noconfirm", "sudo pacman -S --noconfirm python-psutil"]
-        elif env == "termux":
-            commands = ["pkg update", "pkg install -y python3"]
         else:
-            Logger.log("No dependency installation routine for this environment.", "WARNING")
-            return
+            log_and_print("Unsupported system. Please install tools manually.", level="ERROR")
+            sys.exit(1)
 
-        for command in commands:
-            try:
-                subprocess.run(command, shell=True, check=True)
-                Logger.log(f"Successfully executed: {command}")
-            except subprocess.CalledProcessError as e:
-                Logger.log(f"Command failed: {command} - {str(e)}", "ERROR")
-                return
+        log_and_print("Environment detected and tools installed successfully.", level="INFO")
 
-# Features implementation
-class Toolkit:
-    @staticmethod
-    def cpu_memory_usage():
-        cpu_usage = psutil.cpu_percent(interval=1)
-        memory_info = psutil.virtual_memory()
-        Logger.log(f"CPU Usage: {cpu_usage}%")
-        Logger.log(f"Memory Usage: {memory_info.percent}%")
+    except subprocess.CalledProcessError as e:
+        log_and_print(f"Failed to install necessary tools: {e}", level="ERROR")
+        sys.exit(1)
 
-    @staticmethod
-    def disk_usage():
-        for partition in psutil.disk_partitions():
-            usage = psutil.disk_usage(partition.mountpoint)
-            Logger.log(f"Partition {partition.device} - Total: {usage.total / 1e9:.2f} GB, "
-                       f"Used: {usage.used / 1e9:.2f} GB, Free: {usage.free / 1e9:.2f} GB")
+def cpu_memory_usage():
+    """Display real-time CPU and memory statistics."""
+    log_and_print("Fetching CPU and memory usage...", level="INFO")
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    log_and_print(f"CPU Usage: {cpu_usage}%", level="INFO")
+    log_and_print(f"Memory Usage: {memory.percent}%", level="INFO")
+    print(Fore.GREEN + f"CPU Usage: {cpu_usage}%" + Style.RESET_ALL)
+    print(Fore.GREEN + f"Memory Usage: {memory.percent}%" + Style.RESET_ALL)
 
-    @staticmethod
-    def network_info():
-        addrs = psutil.net_if_addrs()
-        for interface, addr_list in addrs.items():
-            Logger.log(f"Interface: {interface}")
-            for addr in addr_list:
-                Logger.log(f"  {addr.family.name}: {addr.address}")
+def disk_usage():
+    """Display disk usage information."""
+    log_and_print("Fetching disk usage details...", level="INFO")
+    disk = psutil.disk_usage('/')
+    log_and_print(f"Total: {disk.total / (1024 ** 3):.2f} GB, Used: {disk.used / (1024 ** 3):.2f} GB, Free: {disk.free / (1024 ** 3):.2f} GB", level="INFO")
+    print(Fore.GREEN + f"Disk Usage -> Total: {disk.total / (1024 ** 3):.2f} GB, Used: {disk.used / (1024 ** 3):.2f} GB, Free: {disk.free / (1024 ** 3):.2f} GB" + Style.RESET_ALL)
 
-    @staticmethod
-    def os_details():
-        Logger.log(f"OS: {platform.system()}")
-        Logger.log(f"Version: {platform.version()}")
-        Logger.log(f"Architecture: {platform.architecture()[0]}")
-
-    @staticmethod
-    def battery_status():
-        if hasattr(psutil, "sensors_battery"):
-            battery = psutil.sensors_battery()
-            if battery:
-                Logger.log(f"Battery: {battery.percent}%")
-                Logger.log(f"Charging: {'Yes' if battery.power_plugged else 'No'}")
-            else:
-                Logger.log("Battery information not available.", "WARNING")
+def network_info():
+    """Display network information."""
+    log_and_print("Fetching network details...", level="INFO")
+    try:
+        if platform.system().lower() == "windows":
+            command = ["ipconfig"]
         else:
-            Logger.log("Battery information not supported on this platform.", "WARNING")
+            command = ["ifconfig"]
+        result = subprocess.run(command, capture_output=True, text=True, check=True)
+        log_and_print(result.stdout, level="INFO")
+        print(Fore.GREEN + result.stdout + Style.RESET_ALL)
+    except subprocess.CalledProcessError as e:
+        log_and_print(f"Failed to fetch network details: {e}", level="ERROR")
 
-# Main menu
-class MainMenu:
-    @staticmethod
-    def display():
-        options = {
-            "1": ("CPU and Memory Usage", Toolkit.cpu_memory_usage),
-            "2": ("Disk Usage", Toolkit.disk_usage),
-            "3": ("Network Information", Toolkit.network_info),
-            "4": ("OS Details", Toolkit.os_details),
-            "5": ("Battery Status", Toolkit.battery_status),
-            "0": ("Exit", exit)
-        }
+def os_details():
+    """Display OS version, kernel version, and architecture."""
+    log_and_print("Fetching OS details...", level="INFO")
+    os_name = platform.system()
+    version = platform.version()
+    architecture = platform.architecture()[0]
+    log_and_print(f"OS: {os_name}, Version: {version}, Architecture: {architecture}", level="INFO")
+    print(Fore.GREEN + f"OS: {os_name}, Version: {version}, Architecture: {architecture}" + Style.RESET_ALL)
 
-        while True:
-            print("\n" + Colors.DARK_BOLD + "Main Menu" + Colors.DARK_RESET)
-            for key, (description, _) in options.items():
-                print(f"  {key}. {description}")
-
-            choice = input("\nSelect an option: ")
-            action = options.get(choice)
-
-            if action:
-                _, func = action
-                func()
-            else:
-                Logger.log("Invalid option!", "WARNING")
+def battery_status():
+    """Display battery percentage, charging status, and health (if available)."""
+    if hasattr(psutil, "sensors_battery"):
+        battery = psutil.sensors_battery()
+        if battery:
+            log_and_print(f"Battery -> Percentage: {battery.percent}%, Charging: {'Yes' if battery.power_plugged else 'No'}", level="INFO")
+            print(Fore.GREEN + f"Battery -> Percentage: {battery.percent}%, Charging: {'Yes' if battery.power_plugged else 'No'}" + Style.RESET_ALL)
+        else:
+            log_and_print("Battery details not available.", level="WARNING")
+    else:
+        log_and_print("Battery monitoring not supported on this system.", level="WARNING")
 
 if __name__ == "__main__":
-    DependencyInstaller.install_dependencies()
-    MainMenu.display()
+    log_and_print("System Info script started.", level="INFO")
+    detect_environment_and_install()
+    cpu_memory_usage()
+    disk_usage()
+    network_info()
+    os_details()
+    battery_status()
+    log_and_print("System Info script finished.", level="INFO")
