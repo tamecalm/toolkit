@@ -1,5 +1,4 @@
 logging
-os
 pathlib
 psutil
 pytube
