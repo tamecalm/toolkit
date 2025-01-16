@@ -39,13 +39,32 @@ loading_screen() {
     sleep 1
 }
 
-# Function to auto-update the script from GitHub
+# Function to auto-update the script from GitHub using curl
 auto_update() {
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
-    curl -s "$GITHUB_REPO/main/menu.sh" -o menu.sh
-    chmod +x menu.sh
+    
+    # Directory where the script is located
+    SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+    
+    # GitHub URL for the repository
+    BASE_URL="https://raw.githubusercontent.com/tamecalm/toolkit/main"
+    
+    # Update menu.sh
+    echo -e "${DARK_CYAN}[INFO] Updating menu.sh...${DARK_RESET}"
+    curl -s "$BASE_URL/menu.sh" -o "$SCRIPT_DIR/menu.sh"
+    chmod +x "$SCRIPT_DIR/menu.sh"
+    
+    # Update all Python scripts in the tools folder
+    echo -e "${DARK_CYAN}[INFO] Updating Python scripts...${DARK_RESET}"
+    for script in $(ls "$SCRIPT_DIR/tools"/*.py); do
+        script_name=$(basename "$script")
+        curl -s "$BASE_URL/tools/$script_name" -o "$SCRIPT_DIR/tools/$script_name"
+    done
+
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
-    exec ./menu.sh
+    
+    # Restart the updated menu.sh
+    exec "$SCRIPT_DIR/menu.sh"
 }
 
 # Function to handle errors
@@ -58,7 +77,7 @@ handle_error() {
 # Function to execute a Python script
 run_script() {
     local script_name=$1
-    python3 "scripts/$script_name" || handle_error "Failed to run $script_name"
+    python3 "tools/$script_name" || handle_error "Failed to run $script_name"
 }
 
 # Main menu
@@ -91,20 +110,20 @@ main_menu() {
         read -r choice
 
         case $choice in
-            1) run_script "tools/encrypt_file.py" ;;
-            2) run_script "tools/decrypt_file.py" ;;
-            3) run_script "tools/network_speed_test.py" ;;
-            4) run_script "tools/system_health.py" ;;
-            5) run_script "tools/schedule_task.py" ;;
-            6) run_script "tools/port_scanner.py" ;;
-            7) run_script "tools/wifi_analyzer.py" ;;
-            8) run_script "tools/bluetooth_scanner.py" ;;
-            9) run_script "tools/media_downloader.py" ;;
-            10) run_script "tools/storage_cleaner.py" ;;
-            11) run_script "tools/password_generator.py" ;;
-            12) run_script "tools/clipboard_manager.py" ;;
-            13) run_script "tools/qr_generator.py" ;;
-            14) run_script "tools/currency_converter.py" ;;
+            1) run_script "encrypt_file.py" ;;
+            2) run_script "decrypt_file.py" ;;
+            3) run_script "network_speed_test.py" ;;
+            4) run_script "system_health.py" ;;
+            5) run_script "schedule_task.py" ;;
+            6) run_script "port_scanner.py" ;;
+            7) run_script "wifi_analyzer.py" ;;
+            8) run_script "bluetooth_scanner.py" ;;
+            9) run_script "media_downloader.py" ;;
+            10) run_script "storage_cleaner.py" ;;
+            11) run_script "password_generator.py" ;;
+            12) run_script "clipboard_manager.py" ;;
+            13) run_script "qr_generator.py" ;;
+            14) run_script "currency_converter.py" ;;
             15) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
