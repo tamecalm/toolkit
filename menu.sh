@@ -17,43 +17,53 @@ DARK_BOLD="\033[1m"
 DARK_RESET="\033[0m"
 
 # Theme and owner details
-THEME="dark"
 OWNER_NAME="John"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
 
-# Function to display a loading screen
+# Function to display an animated loading screen
 loading_screen() {
     clear
+
+    frames=(
+        "  ██████   ██████   ██████   ██████   ██████   ██████   ██████  "
+        " ████████ ████████ ████████ ████████ ████████ ████████ ████████ "
+        "██████████████████████████████████████████████████████████████"
+        "██████████████████████████████████████████████████████████████"
+        " ████████ ████████ ████████ ████████ ████████ ████████ ████████ "
+        "  ██████   ██████   ██████   ██████   ██████   ██████   ██████  "
+    )
+
     echo -e "${DARK_CYAN}${DARK_BOLD}"
-    echo "==========================================="
-    echo "          Welcome to $OWNER_NAME's Toolkit         "
-    echo "      GitHub: $(basename $GITHUB_REPO)       "
-    echo "==========================================="
-    echo -e "${DARK_RESET}"
+    for frame in "${frames[@]}"; do
+        echo -e "\n\n\n\n\n\n\n\t\t$frame"
+        sleep 0.2
+        clear
+    done
 
     for i in {1..100}; do
-        printf "\r%50s" "Loading... $i%"
+        printf "\r\t\tLoading... %d%%" "$i"
         sleep 0.02
     done
-    echo -e "\n${DARK_GREEN}[INFO] Toolkit Loaded Successfully!${DARK_RESET}"
+
+    echo -e "\n\n\t${DARK_GREEN}[INFO] Toolkit Loaded Successfully!${DARK_RESET}"
     sleep 1
 }
 
 # Function to auto-update the script from GitHub using curl
 auto_update() {
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
-    
+
     # Directory where the script is located
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-    
+
     # GitHub URL for the repository
     BASE_URL="https://raw.githubusercontent.com/tamecalm/toolkit/main"
-    
+
     # Update menu.sh
     echo -e "${DARK_CYAN}[INFO] Updating menu.sh...${DARK_RESET}"
     curl -s "$BASE_URL/menu.sh" -o "$SCRIPT_DIR/menu.sh"
     chmod +x "$SCRIPT_DIR/menu.sh"
-    
+
     # Update all Python scripts in the tools folder
     echo -e "${DARK_CYAN}[INFO] Updating Python scripts...${DARK_RESET}"
     for script in $(ls "$SCRIPT_DIR/tools"/*.py); do
@@ -62,7 +72,7 @@ auto_update() {
     done
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
-    
+
     # Restart the updated menu.sh
     exec "$SCRIPT_DIR/menu.sh"
 }
@@ -84,29 +94,28 @@ run_script() {
 main_menu() {
     while true; do
         clear
+
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        echo "==========================================="
-        echo "            John's Toolkit Menu            "
-        echo "==========================================="
+        echo "  ==========================================="
+        echo "           Welcome to $OWNER_NAME's Toolkit            "
+        echo "  ==========================================="
         echo -e "${DARK_RESET}"
+
         echo "Choose an option:"
-        echo "1. Encrypt a File"
-        echo "2. Decrypt a File"
-        echo "3. Network Speed Test"
-        echo "4. System Health Check"
-        echo "5. Schedule a Task"
-        echo "6. Port Scanner"
-        echo "7. Wi-Fi Analyzer"
-        echo "8. Bluetooth Scanner"
-        echo "9. Media Downloader"
-        echo "10. Storage Cleaner"
-        echo "11. Password Generator"
-        echo "12. Clipboard Manager"
-        echo "13. QR Code Generator"
-        echo "14. Currency Converter"
-        echo "15. Auto Update Script"
-        echo "0. Exit"
-        echo -n "Enter your choice: "
+        echo -e "\n${DARK_GREEN}" \
+             "\t1. Encrypt a File\n" \
+             "\t2. Decrypt a File\n" \
+             "\t3. Network Speed Test\n" \
+             "\t4. System Health Check\n" \
+             "\t5. Schedule a Task\n" \
+             "\t6. Port Scanner\n" \
+             "\t7. Wi-Fi Analyzer\n" \
+             "\t8. Bluetooth Scanner\n" \
+             "\t9. Media Downloader\n" \
+             "\t10. Auto Update Script\n" \
+             "\t0. Exit"
+
+        echo -e "\n${DARK_RESET}Enter your choice: "
         read -r choice
 
         case $choice in
@@ -119,12 +128,7 @@ main_menu() {
             7) run_script "wifi_analyzer.py" ;;
             8) run_script "bluetooth_scanner.py" ;;
             9) run_script "media_downloader.py" ;;
-            10) run_script "storage_cleaner.py" ;;
-            11) run_script "password_generator.py" ;;
-            12) run_script "clipboard_manager.py" ;;
-            13) run_script "qr_generator.py" ;;
-            14) run_script "currency_converter.py" ;;
-            15) auto_update ;;
+            10) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
