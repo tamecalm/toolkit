@@ -7,7 +7,7 @@ import platform
 from shutil import which
 
 # Set up logging configuration
-LOG_FILE = "port_scanner.log"
+LOG_FILE = "err.log"
 logging.basicConfig(
     filename=LOG_FILE,
     level=logging.INFO,
