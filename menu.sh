@@ -65,11 +65,26 @@ auto_update() {
     chmod +x "$SCRIPT_DIR/menu.sh"
 
     # Update all Python scripts in the tools folder
-    echo -e "${DARK_CYAN}[INFO] Updating Python scripts...${DARK_RESET}"
+    echo -e "${DARK_CYAN}[INFO] Updating Python scripts in the tools folder...${DARK_RESET}"
     for script in $(ls "$SCRIPT_DIR/tools"/*.py); do
         script_name=$(basename "$script")
         curl -s "$BASE_URL/tools/$script_name" -o "$SCRIPT_DIR/tools/$script_name"
     done
+
+    # Update all Python scripts outside the tools folder
+    echo -e "${DARK_CYAN}[INFO] Updating Python scripts outside the tools folder...${DARK_RESET}"
+    for script in $(ls "$SCRIPT_DIR"/*.py); do
+        script_name=$(basename "$script")
+        curl -s "$BASE_URL/$script_name" -o "$SCRIPT_DIR/$script_name"
+    done
+
+    # Update README.md
+    echo -e "${DARK_CYAN}[INFO] Updating README.md...${DARK_RESET}"
+    curl -s "$BASE_URL/README.md" -o "$SCRIPT_DIR/README.md"
+
+    # Update requirements.txt
+    echo -e "${DARK_CYAN}[INFO] Updating requirements.txt...${DARK_RESET}"
+    curl -s "$BASE_URL/requirements.txt" -o "$SCRIPT_DIR/requirements.txt"
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
 
