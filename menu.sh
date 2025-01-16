@@ -64,47 +64,6 @@ loading_screen() {
         printf "%*s%s\n" $x "" "$loading_text"
         sleep 0.02
     done
-
-    clear
-    success_message="[INFO] Toolkit Loaded Successfully!"
-    success_width=${#success_message}
-    x=$(( (term_width - success_width) / 2 ))
-    y=$(( (term_height - 1) / 2 ))
-
-    for ((i = 0; i < y; i++)); do
-        echo
-    done
-
-    printf "%*s%s\n" $x "" "$DARK_GREEN$success_message$DARK_RESET"
-    sleep 2
-}
-
-# Function to display an animated welcome message
-welcome_message() {
-    clear
-    term_width=$(tput cols)
-    term_height=$(tput lines)
-
-    frames=(
-        "Welcome to..."
-        "$OWNER_NAME's Toolkit"
-    )
-
-    for frame in "${frames[@]}"; do
-        clear
-        frame_width=${#frame}
-        x=$(( (term_width - frame_width) / 2 ))
-        y=$(( (term_height - 5) / 2 ))
-
-        for ((i = 0; i < y; i++)); do
-            echo
-        done
-
-        printf "%*s%s\n" $x "" "$DARK_CYAN$frame$DARK_RESET"
-        sleep 1
-    done
-
-    clear
 }
 
 # Function to auto-update the script from GitHub using curl
@@ -202,9 +161,8 @@ main_menu() {
     done
 }
 
-# Run the loading screen, welcome message, and main menu
+# Run the loading screen and main menu
 loading_screen
-welcome_message
 main_menu
 
 # Display footer at exit
