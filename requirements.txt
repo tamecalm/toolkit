@@ -2,7 +2,6 @@ logging
 pathlib
 psutil
 pytube
-shutil
 subprocess
 sys
 time
