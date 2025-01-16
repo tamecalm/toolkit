@@ -25,27 +25,56 @@ loading_screen() {
     clear
 
     frames=(
-        "  ██████   ██████   ██████   ██████   ██████   ██████   ██████  "
-        " ████████ ████████ ████████ ████████ ████████ ████████ ████████ "
-        "██████████████████████████████████████████████████████████████"
-        "██████████████████████████████████████████████████████████████"
-        " ████████ ████████ ████████ ████████ ████████ ████████ ████████ "
-        "  ██████   ██████   ██████   ██████   ██████   ██████   ██████  "
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "      ███████████████████████████████████████████████████████████████      "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
     )
 
-    echo -e "${DARK_CYAN}${DARK_BOLD}"
+    term_width=$(tput cols)
+    term_height=$(tput lines)
+
     for frame in "${frames[@]}"; do
-        echo -e "\n\n\n\n\n\n\n\t\t$frame"
-        sleep 0.2
         clear
+        frame_width=${#frame}
+        x=$(( (term_width - frame_width) / 2 ))
+        y=$(( (term_height - 7) / 2 ))
+
+        for ((i = 0; i < y; i++)); do
+            echo
+        done
+
+        printf "%*s%s\n" $x "" "$frame"
+        sleep 0.2
     done
 
     for i in {1..100}; do
-        printf "\r\t\tLoading... %d%%" "$i"
+        clear
+        loading_text="Loading... $i%%"
+        loading_width=${#loading_text}
+        x=$(( (term_width - loading_width) / 2 ))
+        y=$(( (term_height - 1) / 2 ))
+
+        for ((j = 0; j < y; j++)); do
+            echo
+        done
+
+        printf "%*s%s\n" $x "" "$loading_text"
         sleep 0.02
     done
 
-    echo -e "\n\n\t${DARK_GREEN}[INFO] Toolkit Loaded Successfully!${DARK_RESET}"
+    clear
+    success_message="[INFO] Toolkit Loaded Successfully!"
+    success_width=${#success_message}
+    x=$(( (term_width - success_width) / 2 ))
+    y=$(( (term_height - 1) / 2 ))
+
+    for ((i = 0; i < y; i++)); do
+        echo
+    done
+
+    printf "%*s%s\n" $x "" "$DARK_GREEN$success_message$DARK_RESET"
     sleep 1
 }
 
@@ -110,10 +139,13 @@ main_menu() {
     while true; do
         clear
 
+        term_width=$(tput cols)
+        x=$(( (term_width - 40) / 2 ))
+
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        echo "  ==========================================="
-        echo "           Welcome to $OWNER_NAME's Toolkit            "
-        echo "  ==========================================="
+        printf "%*s===========================================\n" $x ""
+        printf "%*sWelcome to $OWNER_NAME's Toolkit\n" $x ""
+        printf "%*s===========================================\n" $x ""
         echo -e "${DARK_RESET}"
 
         echo "Choose an option:"
