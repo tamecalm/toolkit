@@ -42,8 +42,8 @@ loading_screen() {
 # Function to auto-update the script from GitHub
 auto_update() {
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
-    curl -s "$GITHUB_REPO/main/toolkit_menu.sh" -o toolkit_menu.sh
-    chmod +x toolkit_menu.sh
+    curl -s "$GITHUB_REPO/main/menu.sh" -o menu.sh
+    chmod +x menu.sh
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
     exec ./toolkit_menu.sh
 }
