@@ -141,7 +141,8 @@ main_menu() {
              "\t1. Network Speed Test\n" \
              "\t2. Port Scanner\n" \
              "\t3. Wi-Fi Analyzer\n" \
-             "\t4. Auto Update Script\n" \
+             "\t4. System Info\n" \
+             "\t5. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
@@ -151,7 +152,8 @@ main_menu() {
             1) run_script "network_speed_test.py" ;;
             2) run_script "port_scanner.py" ;;
             3) run_script "wifi_analyzer.py" ;;
-            4) auto_update ;;
+            4) run_script "system_info.py" ;;
+            5) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
