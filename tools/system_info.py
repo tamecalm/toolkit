@@ -76,15 +76,32 @@ def detect_environment_and_install():
         log_and_print(f"Failed to install necessary tools: {e}", level="ERROR")
         sys.exit(1)
 
+def get_cpu_load():
+    """Fetch CPU load using shell commands as a fallback."""
+    try:
+        result = subprocess.run(["cat", "/proc/loadavg"], capture_output=True, text=True, check=True)
+        load_avg = result.stdout.split()[0]  # Get the 1-minute load average
+        log_and_print(f"CPU Load Average (1 min): {load_avg}", level="INFO")
+        print(Fore.GREEN + f"CPU Load Average (1 min): {load_avg}" + Style.RESET_ALL)
+    except subprocess.CalledProcessError as e:
+        log_and_print(f"Failed to fetch CPU load average: {e}", level="ERROR")
+
 def cpu_memory_usage():
     """Display real-time CPU and memory statistics."""
     log_and_print("Fetching CPU and memory usage...", level="INFO")
-    cpu_usage = psutil.cpu_percent(interval=1)
-    memory = psutil.virtual_memory()
-    log_and_print(f"CPU Usage: {cpu_usage}%", level="INFO")
-    log_and_print(f"Memory Usage: {memory.percent}%", level="INFO")
-    print(Fore.GREEN + f"CPU Usage: {cpu_usage}%" + Style.RESET_ALL)
-    print(Fore.GREEN + f"Memory Usage: {memory.percent}%" + Style.RESET_ALL)
+    try:
+        if os.access('/proc/stat', os.R_OK):
+            cpu_usage = psutil.cpu_percent(interval=1)
+            log_and_print(f"CPU Usage: {cpu_usage}%", level="INFO")
+            print(Fore.GREEN + f"CPU Usage: {cpu_usage}%" + Style.RESET_ALL)
+        else:
+            get_cpu_load()  # Use fallback method
+
+        memory = psutil.virtual_memory()
+        log_and_print(f"Memory Usage: {memory.percent}%", level="INFO")
+        print(Fore.GREEN + f"Memory Usage: {memory.percent}%" + Style.RESET_ALL)
+    except Exception as e:
+        log_and_print(f"Error fetching CPU/Memory usage: {e}", level="ERROR")
 
 def disk_usage():
     """Display disk usage information."""
