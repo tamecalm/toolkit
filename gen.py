@@ -13,7 +13,7 @@ standard_libs = set(sys.builtin_module_names)  # Built-in modules are included h
 # Extend with more standard library modules
 standard_libs.update({
     "datetime", "math", "os", "sys", "logging", "json", "socket", "platform", "unittest", "collections", "subprocess",
-    "argparse", "csv", "hashlib", "http", "itertools", "pickle", "random", "re", "struct", "time", "uuid", "zipfile"
+    "argparse", "csv", "hashlib", "http", "itertools", "pickle", "random", "re", "struct", "time", "uuid", "shutil", "zipfile"
     # Add any additional modules from Python's standard library here
 })
 
