@@ -45,7 +45,7 @@ auto_update() {
     curl -s "$GITHUB_REPO/main/menu.sh" -o menu.sh
     chmod +x menu.sh
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
-    exec ./toolkit_menu.sh
+    exec ./menu.sh
 }
 
 # Function to handle errors
