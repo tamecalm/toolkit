@@ -1,0 +1,7 @@
+2025-01-16 14:34:38,734 - INFO - speedtest-cli successfully installed.
+2025-01-16 14:34:38,745 - ERROR - An unexpected error occurred during the speed test.
+[WinError 2] The system cannot find the file specified
+2025-01-16 14:41:13,490 - INFO - Detecting environment...
+2025-01-16 14:41:13,691 - INFO - Operating System: windows
+2025-01-16 14:41:13,691 - INFO - Windows detected. Checking for nmap installation...
+2025-01-16 14:41:13,726 - ERROR - nmap not found. Please download and install it from https://nmap.org/download.html

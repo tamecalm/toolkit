@@ -5,7 +5,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(
-    filename="network_speed_test.log",
+    filename="err.log",
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
