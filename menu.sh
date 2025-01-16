@@ -91,20 +91,20 @@ main_menu() {
         read -r choice
 
         case $choice in
-            1) run_script "encrypt_file.py" ;;
-            2) run_script "decrypt_file.py" ;;
-            3) run_script "network_speed_test.py" ;;
-            4) run_script "system_health.py" ;;
-            5) run_script "schedule_task.py" ;;
-            6) run_script "port_scanner.py" ;;
-            7) run_script "wifi_analyzer.py" ;;
-            8) run_script "bluetooth_scanner.py" ;;
-            9) run_script "media_downloader.py" ;;
-            10) run_script "storage_cleaner.py" ;;
-            11) run_script "password_generator.py" ;;
-            12) run_script "clipboard_manager.py" ;;
-            13) run_script "qr_generator.py" ;;
-            14) run_script "currency_converter.py" ;;
+            1) run_script "tools/encrypt_file.py" ;;
+            2) run_script "tools/decrypt_file.py" ;;
+            3) run_script "tools/network_speed_test.py" ;;
+            4) run_script "tools/system_health.py" ;;
+            5) run_script "tools/schedule_task.py" ;;
+            6) run_script "tools/port_scanner.py" ;;
+            7) run_script "tools/wifi_analyzer.py" ;;
+            8) run_script "tools/bluetooth_scanner.py" ;;
+            9) run_script "tools/media_downloader.py" ;;
+            10) run_script "tools/storage_cleaner.py" ;;
+            11) run_script "tools/password_generator.py" ;;
+            12) run_script "tools/clipboard_manager.py" ;;
+            13) run_script "tools/qr_generator.py" ;;
+            14) run_script "tools/currency_converter.py" ;;
             15) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
