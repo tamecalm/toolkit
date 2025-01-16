@@ -7,7 +7,7 @@ from shutil import which
 from colorama import Fore, Style
 
 # Set up logging configuration
-LOG_FILE = "wifi_analyzer.log"
+LOG_FILE = "data.log"
 logging.basicConfig(
     filename=LOG_FILE,
     level=logging.INFO,
@@ -78,12 +78,10 @@ def detect_environment_and_install():
         log_and_print(f"Failed to install Wi-Fi tools: {e}", level="ERROR")
         sys.exit(1)
 
-def wifi_analyzer():
-    """Scan for Wi-Fi networks and display results."""
-    log_and_print("Starting Wi-Fi scan...", level="INFO")
-
+def wifi_scan_windows():
+    """Scan for Wi-Fi networks on Windows."""
     try:
-        command = ["termux-wifi-scaninfo"] if "com.termux" in os.environ.get("PREFIX", "") else ["iwlist", "scanning"]
+        command = ["netsh", "wlan", "show", "networks", "mode=bssid"]
         log_and_print(f"Running command: {' '.join(command)}", level="INFO")
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         output = result.stdout.strip()
@@ -92,10 +90,38 @@ def wifi_analyzer():
             log_and_print("No Wi-Fi networks found. Ensure Wi-Fi is enabled.", level="WARNING")
         else:
             log_and_print("Wi-Fi networks found:", level="INFO")
-            networks = output.splitlines()
-            for idx, network in enumerate(networks, 1):
-                print(Fore.GREEN + f"{idx}. {network}" + Style.RESET_ALL)
-                log_and_print(f"Network {idx}: {network}", level="INFO")
+            print(Fore.GREEN + output + Style.RESET_ALL)
+            log_and_print(output, level="INFO")
+
+    except subprocess.CalledProcessError as e:
+        log_and_print(f"Wi-Fi scan failed: {e}", level="ERROR")
+    except Exception as e:
+        log_and_print(f"An unexpected error occurred: {e}", level="ERROR")
+        sys.exit(1)
+
+def wifi_analyzer():
+    """Scan for Wi-Fi networks and display results."""
+    log_and_print("Starting Wi-Fi scan...", level="INFO")
+
+    try:
+        system = platform.system().lower()
+        if system == "windows":
+            wifi_scan_windows()
+        elif system == "linux":
+            command = ["termux-wifi-scaninfo"] if "com.termux" in os.environ.get("PREFIX", "") else ["iwlist", "scanning"]
+            log_and_print(f"Running command: {' '.join(command)}", level="INFO")
+            result = subprocess.run(command, check=True, capture_output=True, text=True)
+            output = result.stdout.strip()
+
+            if not output:
+                log_and_print("No Wi-Fi networks found. Ensure Wi-Fi is enabled.", level="WARNING")
+            else:
+                log_and_print("Wi-Fi networks found:", level="INFO")
+                print(Fore.GREEN + output + Style.RESET_ALL)
+                log_and_print(output, level="INFO")
+        else:
+            log_and_print("Unsupported system for Wi-Fi scanning.", level="ERROR")
+            sys.exit(1)
 
     except subprocess.CalledProcessError as e:
         log_and_print(f"Wi-Fi scan failed: {e}", level="ERROR")
