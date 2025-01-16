@@ -118,32 +118,20 @@ main_menu() {
 
         echo "Choose an option:"
         echo -e "\n${DARK_GREEN}" \
-             "\t1. Encrypt a File\n" \
-             "\t2. Decrypt a File\n" \
-             "\t3. Network Speed Test\n" \
-             "\t4. System Health Check\n" \
-             "\t5. Schedule a Task\n" \
-             "\t6. Port Scanner\n" \
-             "\t7. Wi-Fi Analyzer\n" \
-             "\t8. Bluetooth Scanner\n" \
-             "\t9. Media Downloader\n" \
-             "\t10. Auto Update Script\n" \
+             "\t1. Network Speed Test\n" \
+             "\t2. Port Scanner\n" \
+             "\t3. Wi-Fi Analyzer\n" \
+             "\t4. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
         read -r choice
 
         case $choice in
-            1) run_script "encrypt_file.py" ;;
-            2) run_script "decrypt_file.py" ;;
-            3) run_script "network_speed_test.py" ;;
-            4) run_script "system_health.py" ;;
-            5) run_script "schedule_task.py" ;;
-            6) run_script "port_scanner.py" ;;
-            7) run_script "wifi_analyzer.py" ;;
-            8) run_script "bluetooth_scanner.py" ;;
-            9) run_script "media_downloader.py" ;;
-            10) auto_update ;;
+            1) run_script "network_speed_test.py" ;;
+            2) run_script "port_scanner.py" ;;
+            3) run_script "wifi_analyzer.py" ;;
+            4) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
