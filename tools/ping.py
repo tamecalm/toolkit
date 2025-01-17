@@ -4,7 +4,7 @@ import logging
 from colorama import Fore, Style
 
 # Set up logging configuration
-LOG_FILE = "ping_utility.log"
+LOG_FILE = "data.log"
 logging.basicConfig(
     filename=LOG_FILE,
     level=logging.INFO,
