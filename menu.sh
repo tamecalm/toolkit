@@ -1,10 +1,5 @@
 #!/bin/bash
 
-# Ensure the script runs with wake lock enabled if on Termux
-if [[ $(uname -o) == "Android" ]]; then
-    termux-wake-lock
-fi
-
 # Log and error files
 LOG_FILE="logs.csv"
 ERROR_LOG="err.txt"
@@ -19,7 +14,6 @@ DARK_RESET="\033[0m"
 # Theme and owner details
 OWNER_NAME="John"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
-FOOTER="\033[3m""'Stay Calm, Stay Focused' - @tamecalm\033[0m"
 
 # Function to display an animated loading screen
 loading_screen() {
@@ -66,37 +60,51 @@ loading_screen() {
     done
 }
 
-# Function to auto-update the script from GitHub using curl
+# Function to auto-update the script from GitHub
 auto_update() {
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
 
     # Directory where the script is located
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
-    # GitHub URL for the repository
-    BASE_URL="https://raw.githubusercontent.com/tamecalm/toolkit/main"
+    # GitHub API URL for the repository contents
+    API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
 
-    # Fetch file listing from GitHub repo
-    echo -e "${DARK_CYAN}[INFO] Fetching file listing from the repository...${DARK_RESET}"
-    repo_files=$(curl -s "https://api.github.com/repos/tamecalm/toolkit/contents" | grep '"path"' | cut -d '"' -f 4)
+    # Recursive function to fetch and update files
+    update_files() {
+        local api_url="$1"
+        local dest_dir="$2"
 
-    if [[ -z "$repo_files" ]]; then
-        echo -e "${DARK_RED}[ERROR] Failed to fetch file listing. Ensure you have internet access and the repository URL is correct.${DARK_RESET}"
-        return
-    fi
+        # Fetch JSON data for the current directory
+        json_data=$(curl -s "$api_url")
 
-    # Loop through all files in the repository and update or download new ones
-    for file in $repo_files; do
-        dest_file="$SCRIPT_DIR/$file"
+        if [[ -z "$json_data" ]]; then
+            echo -e "${DARK_RED}[ERROR] Failed to fetch repository data.${DARK_RESET}"
+            return
+        fi
 
-        # Create directories for nested files if they don't exist
-        dest_dir=$(dirname "$dest_file")
-        mkdir -p "$dest_dir"
+        # Loop through items in the JSON data
+        echo "$json_data" | jq -c '.[]' | while read -r item; do
+            item_type=$(echo "$item" | jq -r '.type')
+            item_path=$(echo "$item" | jq -r '.path')
+            download_url=$(echo "$item" | jq -r '.download_url')
 
-        # Download file from GitHub
-        echo -e "${DARK_CYAN}[INFO] Updating $file...${DARK_RESET}"
-        curl -s "$BASE_URL/$file" -o "$dest_file"
-    done
+            dest_file="$dest_dir/$item_path"
+
+            if [[ $item_type == "dir" ]]; then
+                # If it's a directory, create it and recurse
+                mkdir -p "$dest_file"
+                update_files "$API_URL/$item_path" "$dest_dir"
+            elif [[ $item_type == "file" ]]; then
+                # Download and update the file
+                echo -e "${DARK_CYAN}[INFO] Updating $item_path...${DARK_RESET}"
+                curl -s "$download_url" -o "$dest_file"
+            fi
+        done
+    }
+
+    # Start updating files from the repository root
+    update_files "$API_URL" "$SCRIPT_DIR"
 
     # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
@@ -170,7 +178,3 @@ main_menu() {
 # Run the loading screen and main menu
 loading_screen
 main_menu
-
-# Display footer at exit
-clear
-echo -e "$FOOTER"
