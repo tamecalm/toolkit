@@ -15,40 +15,67 @@ DARK_RESET="\033[0m"
 OWNER_NAME="John"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
 
-# Function to display animated header
-animated_header() {
+# Function to display an animated loading screen
+loading_screen() {
     clear
+
+    frames=(
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "      ███████████████████████████████████████████████████████████████      "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
+    )
+
     term_width=$(tput cols)
     term_height=$(tput lines)
 
-    # Animated hacking-style 3D header
-    for i in {1..3}; do
+    for frame in "${frames[@]}"; do
         clear
-        for ((line = 1; line <= term_height / 3; line++)); do
+        frame_width=${#frame}
+        x=$(( (term_width - frame_width) / 2 ))
+        y=$(( (term_height - 7) / 2 ))
+
+        for ((i = 0; i < y; i++)); do
             echo
         done
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}███████╗████████╗██╗     ██████╗███╗   ██╗"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}██╔════╝╚══██╔══╝██║    ██╔════╝████╗  ██║"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}█████╗     ██║   ██║    ██║     ██╔██╗ ██║"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}██╔══╝     ██║   ██║    ██║     ██║╚██╗██║"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}███████╗   ██║   ██║    ╚██████╗██║ ╚████║"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_GREEN}╚══════╝   ╚═╝   ╚═╝     ╚═════╝╚═╝  ╚═══╝"
-        printf "%*s%s\n" $(( (term_width - 36) / 2 )) "" "${DARK_BOLD}${DARK_CYAN}Welcome to ${OWNER_NAME}'s Toolkit"
+
+        printf "%*s%s\n" $x "" "$frame"
         sleep 0.2
     done
-    echo -e "${DARK_RESET}"
+
+    for i in {1..100}; do
+        clear
+        loading_text="Loading... $i%%"
+        loading_width=${#loading_text}
+        x=$(( (term_width - loading_width) / 2 ))
+        y=$(( (term_height - 1) / 2 ))
+
+        for ((j = 0; j < y; j++)); do
+            echo
+        done
+
+        printf "%*s%s\n" $x "" "$loading_text"
+        sleep 0.02
+    done
 }
 
 # Function to auto-update the script from GitHub
 auto_update() {
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
 
+    # Directory where the script is located
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+    # GitHub API URL for the repository contents
     API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
 
+    # Recursive function to fetch and update files
     update_files() {
         local api_url="$1"
         local dest_dir="$2"
+
+        # Fetch JSON data for the current directory
         json_data=$(curl -s "$api_url")
 
         if [[ -z "$json_data" ]]; then
@@ -56,25 +83,35 @@ auto_update() {
             return
         fi
 
+        # Loop through items in the JSON data
         echo "$json_data" | jq -c '.[]' | while read -r item; do
             item_type=$(echo "$item" | jq -r '.type')
             item_path=$(echo "$item" | jq -r '.path')
             download_url=$(echo "$item" | jq -r '.download_url')
+
             dest_file="$dest_dir/$item_path"
 
             if [[ $item_type == "dir" ]]; then
+                # If it's a directory, create it and recurse
                 mkdir -p "$dest_file"
                 update_files "$API_URL/$item_path" "$dest_dir"
             elif [[ $item_type == "file" ]]; then
+                # Download and update the file
                 echo -e "${DARK_CYAN}[INFO] Updating $item_path...${DARK_RESET}"
                 curl -s "$download_url" -o "$dest_file"
             fi
         done
     }
 
+    # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
+
+    # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
+
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
+
+    # Restart the updated menu.sh
     exec "$SCRIPT_DIR/menu.sh"
 }
 
@@ -95,21 +132,41 @@ run_script() {
 main_menu() {
     while true; do
         clear
-        animated_header
-        echo -e "${DARK_GREEN}Main Menu:${DARK_RESET}"
-        echo -e "\n1. Network Tools"
-        echo -e "2. System Tools"
-        echo -e "3. Script Manager"
-        echo -e "0. Exit"
 
-        echo -e "\nEnter your choice: "
-        read -r main_choice
+        term_width=$(tput cols)
+        x=$(( (term_width - 40) / 2 ))
 
-        case $main_choice in
-            1) network_tools_menu ;;
-            2) system_tools_menu ;;
-            3) auto_update ;;
-            0) echo -e "${DARK_GREEN}Goodbye!${DARK_RESET}"; exit ;;
+        echo -e "${DARK_CYAN}${DARK_BOLD}"
+        printf "%*s===========================================\n" $x ""
+        printf "%*sWelcome to $OWNER_NAME's Toolkit\n" $x ""
+        printf "%*s===========================================\n" $x ""
+        echo -e "${DARK_RESET}"
+
+        echo "Choose an option:"
+        echo -e "\n${DARK_GREEN}" \
+             "\t1. Network Speed Test\n" \
+             "\t2. Port Scanner\n" \
+             "\t3. Wi-Fi Analyzer\n" \
+             "\t4. System Info\n" \
+             "\t5. Ping Utility\n" \
+             "\t6. Traceroute\n" \
+             "\t7. Port Forwarding\n" \
+             "\t8. Auto Update Script\n" \
+             "\t0. Exit"
+
+        echo -e "\n${DARK_RESET}Enter your choice: "
+        read -r choice
+
+        case $choice in
+            1) run_script "network_speed_test.py" ;;
+            2) run_script "port_scanner.py" ;;
+            3) run_script "wifi_analyzer.py" ;;
+            4) run_script "system_info.py" ;;
+            5) run_script "ping.py" ;;
+            6) run_script "traceroute.py" ;;
+            7) run_script "port.py" ;;
+            8) auto_update ;;
+            0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
 
@@ -118,53 +175,6 @@ main_menu() {
     done
 }
 
-# Submenu for Network Tools
-network_tools_menu() {
-    while true; do
-        clear
-        animated_header
-        echo -e "${DARK_CYAN}Network Tools:${DARK_RESET}"
-        echo -e "\n1. Network Speed Test"
-        echo -e "2. Port Scanner"
-        echo -e "3. Wi-Fi Analyzer"
-        echo -e "0. Back to Main Menu"
-
-        echo -e "\nEnter your choice: "
-        read -r choice
-
-        case $choice in
-            1) run_script "network_speed_test.py" ;;
-            2) run_script "port_scanner.py" ;;
-            3) run_script "wifi_analyzer.py" ;;
-            0) return ;;
-            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-        esac
-    done
-}
-
-# Submenu for System Tools
-system_tools_menu() {
-    while true; do
-        clear
-        animated_header
-        echo -e "${DARK_CYAN}System Tools:${DARK_RESET}"
-        echo -e "\n1. System Info"
-        echo -e "2. Ping Utility"
-        echo -e "3. Traceroute"
-        echo -e "0. Back to Main Menu"
-
-        echo -e "\nEnter your choice: "
-        read -r choice
-
-        case $choice in
-            1) run_script "system_info.py" ;;
-            2) run_script "ping.py" ;;
-            3) run_script "traceroute.py" ;;
-            0) return ;;
-            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-        esac
-    done
-}
-
-# Run the main menu
+# Run the loading screen and main menu
+loading_screen
 main_menu
