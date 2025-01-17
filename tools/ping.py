@@ -37,7 +37,7 @@ def detect_environment_and_install():
             # Check for Termux environment
             if "com.termux" in os.environ.get("PREFIX", ""):
                 log_and_print("Termux environment detected. Installing necessary tools...", level="INFO")
-                subprocess.run(["pkg", "install", "-y", "iputils-ping"], check=True)
+                subprocess.run(["pkg", "install", "-y", "inetutils"], check=True)
             else:
                 # Check Linux distribution for package manager
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
