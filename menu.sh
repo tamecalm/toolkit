@@ -76,32 +76,30 @@ auto_update() {
     # GitHub URL for the repository
     BASE_URL="https://raw.githubusercontent.com/tamecalm/toolkit/main"
 
-    # Update menu.sh
-    echo -e "${DARK_CYAN}[INFO] Updating menu.sh...${DARK_RESET}"
-    curl -s "$BASE_URL/menu.sh" -o "$SCRIPT_DIR/menu.sh"
-    chmod +x "$SCRIPT_DIR/menu.sh"
+    # Fetch file listing from GitHub repo
+    echo -e "${DARK_CYAN}[INFO] Fetching file listing from the repository...${DARK_RESET}"
+    repo_files=$(curl -s "https://api.github.com/repos/tamecalm/toolkit/contents" | grep '"path"' | cut -d '"' -f 4)
 
-    # Update all Python scripts in the tools folder
-    echo -e "${DARK_CYAN}[INFO] Updating Python scripts in the tools folder...${DARK_RESET}"
-    for script in $(ls "$SCRIPT_DIR/tools"/*.py); do
-        script_name=$(basename "$script")
-        curl -s "$BASE_URL/tools/$script_name" -o "$SCRIPT_DIR/tools/$script_name"
+    if [[ -z "$repo_files" ]]; then
+        echo -e "${DARK_RED}[ERROR] Failed to fetch file listing. Ensure you have internet access and the repository URL is correct.${DARK_RESET}"
+        return
+    fi
+
+    # Loop through all files in the repository and update or download new ones
+    for file in $repo_files; do
+        dest_file="$SCRIPT_DIR/$file"
+
+        # Create directories for nested files if they don't exist
+        dest_dir=$(dirname "$dest_file")
+        mkdir -p "$dest_dir"
+
+        # Download file from GitHub
+        echo -e "${DARK_CYAN}[INFO] Updating $file...${DARK_RESET}"
+        curl -s "$BASE_URL/$file" -o "$dest_file"
     done
 
-    # Update all Python scripts outside the tools folder
-    echo -e "${DARK_CYAN}[INFO] Updating Python scripts outside the tools folder...${DARK_RESET}"
-    for script in $(ls "$SCRIPT_DIR"/*.py); do
-        script_name=$(basename "$script")
-        curl -s "$BASE_URL/$script_name" -o "$SCRIPT_DIR/$script_name"
-    done
-
-    # Update README.md
-    echo -e "${DARK_CYAN}[INFO] Updating README.md...${DARK_RESET}"
-    curl -s "$BASE_URL/README.md" -o "$SCRIPT_DIR/README.md"
-
-    # Update requirements.txt
-    echo -e "${DARK_CYAN}[INFO] Updating requirements.txt...${DARK_RESET}"
-    curl -s "$BASE_URL/requirements.txt" -o "$SCRIPT_DIR/requirements.txt"
+    # Make all .sh files executable
+    find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
 
@@ -144,7 +142,8 @@ main_menu() {
              "\t4. System Info\n" \
              "\t5. Ping Utility\n" \
              "\t6. Traceroute\n" \
-             "\t7. Auto Update Script\n" \
+             "\t7. Port Forwarding\n" \
+             "\t8. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
@@ -157,7 +156,8 @@ main_menu() {
             4) run_script "system_info.py" ;;
             5) run_script "ping.py" ;;
             6) run_script "traceroute.py" ;;
-            7) auto_update ;;
+            7) run_script "port.py" ;;
+            8) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
