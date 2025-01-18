@@ -5,6 +5,8 @@ import sys
 
 # Configuration file path
 CONFIG_FILE = os.path.expanduser("~/.nextdns_config")
+RESOLV_CONF = "/data/data/com.termux/files/usr/etc/resolv.conf"
+ORIGINAL_RESOLV_CONF = "/data/data/com.termux/files/usr/etc/resolv.conf.bak"
 
 # ANSI escape sequences for "hacking" colors
 RESET = "\033[0m"
@@ -45,19 +47,29 @@ def activate_nextdns(profile_name):
     ipv6_2 = profile.get("IPV6_2")
 
     print(f"{GREEN}[INFO] Activating NextDNS profile: {profile_name}...{RESET}")
+
+    # Backup original resolv.conf
+    if not os.path.exists(ORIGINAL_RESOLV_CONF):
+        os.system(f"cp {RESOLV_CONF} {ORIGINAL_RESOLV_CONF}")
     
     # Configure DNS-over-TLS
     try:
-        resolv_conf = "/data/data/com.termux/files/usr/etc/resolv.conf"
-        with open(resolv_conf, "w") as f:
+        with open(RESOLV_CONF, "w") as f:
             f.write(f"nameserver {dot_url}\n")
             f.write(f"nameserver {ipv6_1}\n")
             f.write(f"nameserver {ipv6_2}\n")
         loading_animation("Configuring DNS-over-TLS (DoT)")
         print(f"{GREEN}[SUCCESS] DNS-over-TLS (DoT) configured.{RESET}")
+
+        # Restart networking to apply changes
+        os.system("termux-reload-settings")
+        print(f"{GREEN}[INFO] Networking stack reloaded. DNS is now active.{RESET}")
     except Exception as e:
         print(f"{RED}[ERROR] DoT configuration error: {e}{RESET}")
         return
+
+    # Verify if DNS is working
+    test_dns()
 
 def test_dns():
     print(f"{CYAN}[INFO] Testing NextDNS configuration...{RESET}")
@@ -67,9 +79,21 @@ def test_dns():
         if response == 0:
             print(f"{GREEN}[SUCCESS] NextDNS is active and working.{RESET}")
         else:
-            print(f"{RED}[ERROR] DNS test failed.{RESET}")
+            print(f"{RED}[ERROR] DNS test failed. Please check your configuration.{RESET}")
     except Exception as e:
         print(f"{RED}[ERROR] DNS test error: {e}{RESET}")
+
+def deactivate_nextdns():
+    print(f"{CYAN}[INFO] Deactivating NextDNS and restoring original settings...{RESET}")
+    try:
+        if os.path.exists(ORIGINAL_RESOLV_CONF):
+            os.system(f"cp {ORIGINAL_RESOLV_CONF} {RESOLV_CONF}")
+            os.system("termux-reload-settings")
+            print(f"{GREEN}[SUCCESS] Original DNS settings restored.{RESET}")
+        else:
+            print(f"{RED}[ERROR] Backup resolv.conf not found. Unable to restore original settings.{RESET}")
+    except Exception as e:
+        print(f"{RED}[ERROR] Failed to deactivate DNS: {e}{RESET}")
 
 def list_profiles():
     print(f"{CYAN}[INFO] Listing all profiles...{RESET}")
@@ -105,7 +129,8 @@ def main_menu():
         print(f"{CYAN}2. Test DNS Configuration{RESET}")
         print(f"{CYAN}3. List All Profiles{RESET}")
         print(f"{CYAN}4. Check Query Usage Stats{RESET}")
-        print(f"{CYAN}5. Exit{RESET}")
+        print(f"{CYAN}5. Deactivate DNS{RESET}")
+        print(f"{CYAN}6. Exit{RESET}")
         
         choice = input(f"\n{GREEN}Select an option: {RESET}")
         
@@ -119,6 +144,8 @@ def main_menu():
         elif choice == "4":
             check_query_usage()
         elif choice == "5":
+            deactivate_nextdns()
+        elif choice == "6":
             print(f"{GREEN}Exiting...{RESET}")
             break
         else:
