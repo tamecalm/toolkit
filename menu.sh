@@ -70,9 +70,6 @@ auto_update() {
     # GitHub API URL for the repository contents
     API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
 
-    # Temporary file to store the list of repository files
-    REPO_FILES=$(mktemp)
-
     # Recursive function to fetch and update files
     update_files() {
         local api_url="$1"
@@ -94,38 +91,21 @@ auto_update() {
 
             dest_file="$dest_dir/$item_path"
 
-            # Add the file path to the repository file list
-            echo "$dest_file" >> "$REPO_FILES"
-
             if [[ $item_type == "dir" ]]; then
                 # If it's a directory, create it and recurse
                 mkdir -p "$dest_file"
                 update_files "$API_URL/$item_path" "$dest_dir"
             elif [[ $item_type == "file" ]]; then
                 # Download and update the file
-                curl -s "$download_url" -o "$dest_file" &
+                curl -s "$download_url" -o "$dest_file"
             fi
         done
-
-        wait
     }
 
     # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
 
-    # Remove any files that are not in the repository
-    find "$SCRIPT_DIR" -type f | while read -r local_file; do
-        if ! grep -Fxq "$local_file" "$REPO_FILES"; then
-            rm -f "$local_file" &
-        fi
-    done
-
-    wait
-
     # Cleanup temporary file
-    rm -f "$REPO_FILES"
-
-    # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
@@ -155,23 +135,19 @@ main_menu() {
         term_width=$(tput cols)
         x=$(( (term_width - 60) / 2 ))
 
-        # Enhanced banner
+        # Updated banner: "TAMECALM"
         banner=$(cat <<EOF
-${DARK_CYAN}${DARK_BOLD}
-███████╗██╗      ██████╗ ██╗  ██╗ ██████╗ ██╗  ██╗
-██╔════╝██║     ██╔═══██╗██║ ██╔╝██╔═══██╗██║ ██╔╝
-███████╗██║     ██║   ██║█████╔╝ ██║   ██║█████╔╝ 
-╚════██║██║     ██║   ██║██╔═██╗ ██║   ██║██╔═██╗ 
-███████║███████╗╚██████╔╝██║  ██╗╚██████╔╝██║  ██╗
-╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+${DARK_CYAN}
+████████╗ █████╗ ███╗   ███╗███████╗ ██████╗ █████╗ ██╗     ███╗   ███╗
+╚══██╔══╝██╔══██╗████╗ ████║██╔════╝██╔════╝██╔══██╗██║     ████╗ ████║
+   ██║   ███████║██╔████╔██║███████╗██║     ███████║██║     ██╔████╔██║
+   ██║   ██╔══██║██║╚██╔╝██║╚════██║██║     ██╔══██║██║     ██║╚██╔╝██║
+   ██║   ██║  ██║██║ ╚═╝ ██║███████║╚██████╗██║  ██║███████╗██║ ╚═╝ ██║
+   ╚═╝   ╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝
 ${DARK_RESET}
 EOF
         )
-        printf "%*s\n" $(( (term_width + ${#banner}) / 2 )) "$banner"
-
-        echo -e "${DARK_CYAN}${DARK_BOLD}"
-        printf "%*s===========================================\n" $x ""
-        echo -e "${DARK_RESET}"
+        printf "%s\n" "$banner"
 
         echo "Choose an option:"
         echo -e "\n${DARK_GREEN}" \
