@@ -183,7 +183,9 @@ EOF
              "\t7. Port Forwarding\n" \
              "\t8. Activate Nextdns\n" \
              "\t9. HTTP Request\n" \
-             "\t10. Auto Update Script\n" \
+             "t10. Logs Viewer\n" \
+             "t11. Virus Scanner\n" \
+             "\t12. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
@@ -199,7 +201,9 @@ EOF
             7) run_script "port.py" ;;
             8) run_script "nextdns.py" ;;
             9) run_script "http_request.py" ;;
-            10) auto_update ;;
+            10) run_script "logs_viewer.py" ;;
+            11) run_script "clam_av.py" ;;
+            12) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
