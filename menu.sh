@@ -103,22 +103,23 @@ auto_update() {
                 update_files "$API_URL/$item_path" "$dest_dir"
             elif [[ $item_type == "file" ]]; then
                 # Download and update the file
-                curl -s "$download_url" -o "$dest_file"
+                curl -s "$download_url" -o "$dest_file" &
             fi
         done
+
+        wait
     }
 
     # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
 
-    # Remove any files that are not in the repository (done silently)
+    # Remove any files that are not in the repository
     find "$SCRIPT_DIR" -type f | while read -r local_file; do
         if ! grep -Fxq "$local_file" "$REPO_FILES"; then
-            rm -f "$local_file" 2>/dev/null
+            rm -f "$local_file" &
         fi
-    done &
+    done
 
-    # Wait for cleanup to finish
     wait
 
     # Cleanup temporary file
@@ -152,23 +153,21 @@ main_menu() {
         clear
 
         term_width=$(tput cols)
-        x=$(( (term_width - 70) / 2 ))
+        x=$(( (term_width - 60) / 2 ))
 
-        # Art banner for JOHN
-        art="${DARK_GREEN}
-   ___  ________  ___  ___  ________      
-  |\  \|\   __  \|\  \|\  \|\   ___  \    
-  \ \  \ \  \|\  \ \  \\\  \ \  \\ \  \   
- __\ \  \ \  \\\  \ \   __  \ \  \\ \  \  
-|\  \\_\  \ \  \\\  \ \  \ \  \ \  \\ \  \ 
-\ \________\ \_______\ \__\ \__\ \__\\ \__\
- \|________|\|_______|\|__|\|__|\|__| \|__|
-                                           
-${DARK_RESET}"
-
-        while IFS= read -r line; do
-            printf "%*s%s\n" "$x" "" "$line"
-        done <<<"$art"
+        # Enhanced banner
+        banner=$(cat <<EOF
+${DARK_CYAN}${DARK_BOLD}
+███████╗██╗      ██████╗ ██╗  ██╗ ██████╗ ██╗  ██╗
+██╔════╝██║     ██╔═══██╗██║ ██╔╝██╔═══██╗██║ ██╔╝
+███████╗██║     ██║   ██║█████╔╝ ██║   ██║█████╔╝ 
+╚════██║██║     ██║   ██║██╔═██╗ ██║   ██║██╔═██╗ 
+███████║███████╗╚██████╔╝██║  ██╗╚██████╔╝██║  ██╗
+╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+${DARK_RESET}
+EOF
+        )
+        printf "%*s\n" $(( (term_width + ${#banner}) / 2 )) "$banner"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
         printf "%*s===========================================\n" $x ""
