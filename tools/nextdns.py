@@ -43,7 +43,7 @@ def install_miniupnpc():
     try:
         if system == "linux":
             if "com.termux" in os.environ.get("PREFIX", ""):
-                log_and_print("Warning: Termux environment detected. You cannot use NextDNS in Termux.", level="ERROR")
+                log_and_print("Warning: Termux environment detected. You cannot access NextDNS in Termux.", level="ERROR")
                 return
             else:
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
@@ -128,7 +128,7 @@ def detect_environment_and_install():
 
         if system == "linux":
             if "com.termux" in os.environ.get("PREFIX", ""):
-                log_and_print("Warning: Termux environment detected. You cannot use NextDNS in Termux.", level="ERROR")
+                log_and_print("Warning: Termux environment detected. You cannot access NextDNS in Termux.", level="ERROR")
                 return
             else:
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
@@ -161,6 +161,10 @@ def detect_environment_and_install():
 
 # Menu to manage NextDNS CLI
 def main_menu():
+    # Skip menu if Termux is detected
+    if "com.termux" in os.environ.get("PREFIX", ""):
+        return
+
     while True:
         os.system("clear")
         print(f"{GREEN}--- NextDNS Manager ---{RESET}".center(50))
