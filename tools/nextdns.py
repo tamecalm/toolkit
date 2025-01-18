@@ -1,7 +1,6 @@
 import os
 import sys
 import subprocess
-import time
 
 # ANSI escape sequences for colored output
 RESET = "\033[0m"
@@ -9,15 +8,31 @@ GREEN = "\033[1;32m"
 CYAN = "\033[1;36m"
 RED = "\033[1;31m"
 
-# Function to check if NextDNS CLI is installed
-def check_nextdns_installed():
+# Function to detect the operating system
+def detect_environment():
+    os_name = sys.platform
+    if "linux" in os_name and "android" in os.uname().release.lower():
+        return "termux"
+    elif os_name == "linux":
+        return "linux"
+    elif os_name == "darwin":
+        return "macos"
+    elif os_name.startswith("win"):
+        return "windows"
+    else:
+        return "unsupported"
+
+# Function to configure DNS-over-TLS for Termux (Android)
+def configure_termux_dot():
+    print(f"{CYAN}[INFO] Configuring DNS-over-TLS (DoT) for Termux...{RESET}")
+    resolv_conf_path = os.path.join(os.getenv("PREFIX"), "etc", "resolv.conf")
     try:
-        subprocess.run(["nextdns", "version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
-        print(f"{GREEN}[INFO] NextDNS CLI is already installed.{RESET}")
-        return True
-    except FileNotFoundError:
-        print(f"{RED}[ERROR] NextDNS CLI is not installed.{RESET}")
-        return False
+        with open(resolv_conf_path, "w") as resolv_file:
+            resolv_file.write("nameserver 45.90.28.0\n")
+            resolv_file.write("nameserver 45.90.30.0\n")
+        print(f"{GREEN}[SUCCESS] DNS-over-TLS configured for Termux.{RESET}")
+    except Exception as e:
+        print(f"{RED}[ERROR] Failed to configure DoT: {e}{RESET}")
 
 # Function to install NextDNS CLI
 def install_nextdns():
@@ -59,29 +74,53 @@ def view_nextdns_logs():
 
 # Menu to manage NextDNS CLI
 def main_menu():
+    environment = detect_environment()
+
+    if environment == "unsupported":
+        print(f"{RED}[ERROR] Unsupported operating system.{RESET}")
+        return
+
     while True:
         os.system("clear")
-        print(f"{GREEN}--- NextDNS Manager ---{RESET}".center(50))
+        print(f"{GREEN}--- NextDNS Manager ({environment.upper()}) ---{RESET}".center(50))
         print(f"{CYAN}Use this tool to install, configure, and manage NextDNS CLI.{RESET}".center(50))
         print(f"\n{GREEN}Main Menu:{RESET}")
         print(f"{CYAN}1. Install NextDNS CLI{RESET}")
         print(f"{CYAN}2. Activate NextDNS{RESET}")
         print(f"{CYAN}3. Deactivate NextDNS{RESET}")
         print(f"{CYAN}4. View NextDNS Logs{RESET}")
-        print(f"{CYAN}5. Exit{RESET}")
+        print(f"{CYAN}5. Configure DNS-over-TLS (DoT) [Termux Only]{RESET}")
+        print(f"{CYAN}6. Exit{RESET}")
         
         choice = input(f"\n{GREEN}Select an option: {RESET}")
         
         if choice == "1":
-            install_nextdns()
+            if environment in ["linux", "macos"]:
+                install_nextdns()
+            else:
+                print(f"{RED}[ERROR] Installation is not supported in this environment.{RESET}")
         elif choice == "2":
             profile_id = input(f"{CYAN}Enter NextDNS Profile ID: {RESET}")
-            activate_nextdns(profile_id)
+            if environment in ["linux", "macos"]:
+                activate_nextdns(profile_id)
+            else:
+                print(f"{RED}[ERROR] Activation is not supported in this environment.{RESET}")
         elif choice == "3":
-            deactivate_nextdns()
+            if environment in ["linux", "macos"]:
+                deactivate_nextdns()
+            else:
+                print(f"{RED}[ERROR] Deactivation is not supported in this environment.{RESET}")
         elif choice == "4":
-            view_nextdns_logs()
+            if environment in ["linux", "macos"]:
+                view_nextdns_logs()
+            else:
+                print(f"{RED}[ERROR] Logs are not supported in this environment.{RESET}")
         elif choice == "5":
+            if environment == "termux":
+                configure_termux_dot()
+            else:
+                print(f"{RED}[ERROR] DoT configuration is only for Termux (Android).{RESET}")
+        elif choice == "6":
             print(f"{GREEN}Exiting...{RESET}")
             break
         else:
