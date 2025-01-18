@@ -13,7 +13,6 @@ DARK_RESET="\033[0m"
 
 # Theme and owner details
 OWNER_NAME="John"
-TOOLKIT_VERSION="v1.0.0"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
 
 # Function to display an animated loading screen
@@ -61,72 +60,90 @@ loading_screen() {
     done
 }
 
-# Function to check if the GitHub API limit has been reached
-check_api_limit() {
-    echo -e "${DARK_CYAN}[INFO] Checking API status...${DARK_RESET}"
-    rate_limit_response=$(curl -s https://api.github.com/rate_limit | jq '.rate.remaining')
-
-    if [[ -z "$rate_limit_response" || "$rate_limit_response" -eq 0 ]]; then
-        echo -e "${DARK_RED}[ERROR] API limit reached. Update unavailable.${DARK_RESET}"
-        return 1
-    fi
-
-    echo -e "${DARK_GREEN}[INFO] API check passed. Remaining limit: $rate_limit_response${DARK_RESET}"
-    return 0
-}
-
 # Function to auto-update the script from GitHub
 auto_update() {
-    check_api_limit || return
-
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
 
+    # Directory where the script is located
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+    # GitHub API URL for the repository contents
     API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
+
+    # Temporary file to store the list of repository files
     REPO_FILES=$(mktemp)
 
+    # Recursive function to fetch and update files
     update_files() {
         local api_url="$1"
         local dest_dir="$2"
 
+        # Fetch JSON data for the current directory
         json_data=$(curl -s "$api_url")
+
         if [[ -z "$json_data" ]]; then
             echo -e "${DARK_RED}[ERROR] Failed to fetch repository data.${DARK_RESET}"
             return
         fi
 
+        # Loop through items in the JSON data
         echo "$json_data" | jq -c '.[]' | while read -r item; do
             item_type=$(echo "$item" | jq -r '.type')
             item_path=$(echo "$item" | jq -r '.path')
             download_url=$(echo "$item" | jq -r '.download_url')
+
             dest_file="$dest_dir/$item_path"
 
+            # Add the file path to the repository file list
             echo "$dest_file" >> "$REPO_FILES"
 
             if [[ $item_type == "dir" ]]; then
+                # If it's a directory, create it and recurse
                 mkdir -p "$dest_file"
                 update_files "$API_URL/$item_path" "$dest_dir"
             elif [[ $item_type == "file" ]]; then
-                curl -s "$download_url" -o "$dest_file" &
+                # Download and update the file
+                echo -e "${DARK_CYAN}[INFO] Updating $item_path...${DARK_RESET}"
+                curl -s "$download_url" -o "$dest_file"
             fi
         done
-
-        wait
     }
 
+    # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
+
+    # Remove any files that are not in the repository
+    echo -e "${DARK_CYAN}[INFO] Cleaning up unnecessary files...${DARK_RESET}"
     find "$SCRIPT_DIR" -type f | while read -r local_file; do
         if ! grep -Fxq "$local_file" "$REPO_FILES"; then
-            rm -f "$local_file" &
+            echo -e "${DARK_RED}[INFO] Removing $local_file...${DARK_RESET}"
+            rm -f "$local_file"
         fi
     done
 
-    wait
+    # Cleanup temporary file
     rm -f "$REPO_FILES"
+
+    # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
+
+    # Restart the updated menu.sh
     exec "$SCRIPT_DIR/menu.sh"
+}
+
+# Function to handle errors
+handle_error() {
+    local error_message=$1
+    echo -e "${DARK_RED}[ERROR] ${error_message}${DARK_RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S'), $error_message" >> "$ERROR_LOG"
+}
+
+# Function to execute a Python script
+run_script() {
+    local script_name=$1
+    python3 "tools/$script_name" || handle_error "Failed to run $script_name"
 }
 
 # Main menu
@@ -135,14 +152,24 @@ main_menu() {
         clear
 
         term_width=$(tput cols)
-        x=$(( (term_width - 60) / 2 ))
+        x=$(( (term_width - 40) / 2 ))
 
-        # Enhanced structured banner
+        # Art banner for JOHN
+        art=$(cat <<EOF
+${DARK_GREEN}
+   __     ______     __  __     __   __    
+  /\ \   /\  __ \   /\ \_\ \   /\ "-.\ \   
+ _\_\ \  \ \ \/\ \  \ \  __ \  \ \ \-.  \  
+/\_____\  \ \_____\  \ \_\ \_\  \ \_\\"\_\ 
+\/_____/   \/_____/   \/_/\/_/   \/_/ \/_/ 
+                                           
+${DARK_RESET}
+EOF
+        )
+        printf "%*s\n" $(( (term_width + ${#art}) / 2 )) "$art"
+
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        printf "%*s\n" $((term_width / 2)) "Welcome to John's Toolkit"
-        printf "%*s\n" $((term_width / 2)) "Version: $TOOLKIT_VERSION"
-        printf "%*s\n" $((term_width / 2)) "Owner: $OWNER_NAME"
-        printf "%*s\n" $((term_width / 2)) "\"Empowering your terminal experience\""
+        printf "%*s===========================================\n" $x ""
         echo -e "${DARK_RESET}"
 
         echo "Choose an option:"
