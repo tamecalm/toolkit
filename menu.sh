@@ -70,6 +70,9 @@ auto_update() {
     # GitHub API URL for the repository contents
     API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
 
+    # Temporary file to store the list of repository files
+    REPO_FILES=$(mktemp)
+
     # Recursive function to fetch and update files
     update_files() {
         local api_url="$1"
@@ -91,6 +94,9 @@ auto_update() {
 
             dest_file="$dest_dir/$item_path"
 
+            # Add the file path to the repository file list
+            echo "$dest_file" >> "$REPO_FILES"
+
             if [[ $item_type == "dir" ]]; then
                 # If it's a directory, create it and recurse
                 mkdir -p "$dest_file"
@@ -105,6 +111,18 @@ auto_update() {
 
     # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
+
+    # Remove any files that are not in the repository
+    echo -e "${DARK_CYAN}[INFO] Cleaning up unnecessary files...${DARK_RESET}"
+    find "$SCRIPT_DIR" -type f | while read -r local_file; do
+        if ! grep -Fxq "$local_file" "$REPO_FILES"; then
+            echo -e "${DARK_RED}[INFO] Removing $local_file...${DARK_RESET}"
+            rm -f "$local_file"
+        fi
+    done
+
+    # Cleanup temporary file
+    rm -f "$REPO_FILES"
 
     # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
@@ -138,19 +156,17 @@ main_menu() {
 
         # Art banner for JOHN
         art=$(cat <<EOF
-                        
-
+${DARK_GREEN}
    __     ______     __  __     __   __    
   /\ \   /\  __ \   /\ \_\ \   /\ "-.\ \   
  _\_\ \  \ \ \/\ \  \ \  __ \  \ \ \-.  \  
 /\_____\  \ \_____\  \ \_\ \_\  \ \_\\"\_\ 
 \/_____/   \/_____/   \/_/\/_/   \/_/ \/_/ 
                                            
-
-       
+${DARK_RESET}
 EOF
         )
-        printf "%*s\n" $((term_width / 2)) "$art"
+        printf "%*s\n" $(( (term_width + ${#art}) / 2 )) "$art"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
         printf "%*s===========================================\n" $x ""
