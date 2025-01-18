@@ -182,7 +182,8 @@ EOF
              "\t6. Traceroute\n" \
              "\t7. Port Forwarding\n" \
              "\t8. Activate Nextdns\n" \
-             "\t9. Auto Update Script\n" \
+             "\t9. HTTP Request\n" \
+             "\t10. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
@@ -197,7 +198,8 @@ EOF
             6) run_script "traceroute.py" ;;
             7) run_script "port.py" ;;
             8) run_script "nextdns.py" ;;
-            9) auto_update ;;
+            9) run_script "http_request.py" ;;
+            10) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
