@@ -13,7 +13,7 @@ DARK_RESET="\033[0m"
 
 # Theme and owner details
 OWNER_NAME="John"
-TOOLKIT_VERSION="v1.5.0"
+TOOLKIT_VERSION="v1.0.0"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
 
 # Function to display an animated loading screen
@@ -81,45 +81,32 @@ auto_update() {
 
     echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
 
-    # Directory where the script is located
     SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-
-    # GitHub API URL for the repository contents
     API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
-
-    # Temporary file to store the list of repository files
     REPO_FILES=$(mktemp)
 
-    # Recursive function to fetch and update files
     update_files() {
         local api_url="$1"
         local dest_dir="$2"
 
-        # Fetch JSON data for the current directory
         json_data=$(curl -s "$api_url")
-
         if [[ -z "$json_data" ]]; then
             echo -e "${DARK_RED}[ERROR] Failed to fetch repository data.${DARK_RESET}"
             return
         fi
 
-        # Loop through items in the JSON data
         echo "$json_data" | jq -c '.[]' | while read -r item; do
             item_type=$(echo "$item" | jq -r '.type')
             item_path=$(echo "$item" | jq -r '.path')
             download_url=$(echo "$item" | jq -r '.download_url')
-
             dest_file="$dest_dir/$item_path"
 
-            # Add the file path to the repository file list
             echo "$dest_file" >> "$REPO_FILES"
 
             if [[ $item_type == "dir" ]]; then
-                # If it's a directory, create it and recurse
                 mkdir -p "$dest_file"
                 update_files "$API_URL/$item_path" "$dest_dir"
             elif [[ $item_type == "file" ]]; then
-                # Download and update the file
                 curl -s "$download_url" -o "$dest_file" &
             fi
         done
@@ -127,10 +114,7 @@ auto_update() {
         wait
     }
 
-    # Start updating files from the repository root
     update_files "$API_URL" "$SCRIPT_DIR"
-
-    # Remove any files that are not in the repository
     find "$SCRIPT_DIR" -type f | while read -r local_file; do
         if ! grep -Fxq "$local_file" "$REPO_FILES"; then
             rm -f "$local_file" &
@@ -138,16 +122,10 @@ auto_update() {
     done
 
     wait
-
-    # Cleanup temporary file
     rm -f "$REPO_FILES"
-
-    # Make all .sh files executable
     find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
 
     echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
-
-    # Restart the updated menu.sh
     exec "$SCRIPT_DIR/menu.sh"
 }
 
@@ -161,10 +139,10 @@ main_menu() {
 
         # Enhanced structured banner
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        echo -e "\n$(printf '%*s' $((term_width / 2)) 'Welcome to John\'s Toolkit')"
-        echo -e "\n$(printf '%*s' $((term_width / 2)) 'Version: $TOOLKIT_VERSION')"
-        echo -e "\n$(printf '%*s' $((term_width / 2)) 'Owner: $OWNER_NAME')"
-        echo -e "\n$(printf '%*s' $((term_width / 2)) '\"Empowering your terminal experience\"')"
+        printf "%*s\n" $((term_width / 2)) "Welcome to John's Toolkit"
+        printf "%*s\n" $((term_width / 2)) "Version: $TOOLKIT_VERSION"
+        printf "%*s\n" $((term_width / 2)) "Owner: $OWNER_NAME"
+        printf "%*s\n" $((term_width / 2)) "\"Empowering your terminal experience\""
         echo -e "${DARK_RESET}"
 
         echo "Choose an option:"
