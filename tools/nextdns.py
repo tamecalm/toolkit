@@ -1,6 +1,5 @@
 import os
 import configparser
-import requests
 import time
 import sys
 
@@ -41,7 +40,6 @@ def activate_nextdns(profile_name):
         return
 
     profile = config[profile_name]
-    doh_url = profile.get("DOH_URL")
     dot_url = profile.get("DOT_URL")
     ipv6_1 = profile.get("IPV6_1")
     ipv6_2 = profile.get("IPV6_2")
@@ -61,28 +59,15 @@ def activate_nextdns(profile_name):
         print(f"{RED}[ERROR] DoT configuration error: {e}{RESET}")
         return
 
-    # Test DoH
-    try:
-        print(f"{CYAN}[INFO] Testing DNS-over-HTTPS (DoH)...{RESET}")
-        loading_animation("Testing DoH connection")
-        response = requests.get(doh_url, headers={"Authorization": f"Bearer {API_KEY}"})
-        print(f"[DEBUG] DoH URL: {doh_url}")
-        if response.status_code == 200:
-            print(f"{GREEN}[SUCCESS] DNS-over-HTTPS (DoH) is active.{RESET}")
-        else:
-            print(f"{RED}[ERROR] DoH setup failed: {response.status_code} - {response.text}{RESET}")
-    except Exception as e:
-        print(f"{RED}[ERROR] DoH configuration error: {e}{RESET}")
-
 def test_dns():
     print(f"{CYAN}[INFO] Testing NextDNS configuration...{RESET}")
     loading_animation("Testing DNS setup")
     try:
-        response = requests.get("https://my.nextdns.io")
-        if response.status_code == 200:
+        response = os.system("ping -c 1 google.com")
+        if response == 0:
             print(f"{GREEN}[SUCCESS] NextDNS is active and working.{RESET}")
         else:
-            print(f"{RED}[ERROR] DNS test failed: {response.status_code}{RESET}")
+            print(f"{RED}[ERROR] DNS test failed.{RESET}")
     except Exception as e:
         print(f"{RED}[ERROR] DNS test error: {e}{RESET}")
 
@@ -113,21 +98,14 @@ def main_menu():
     while True:
         os.system("clear")
         print(f"{GREEN}--- NextDNS Manager ---{RESET}".center(50))
-        print(f"\n{CYAN}Guide:{RESET}")
-        print(f"""
-{GREEN}1.{RESET} Use this tool to configure and activate NextDNS profiles.
-{GREEN}2.{RESET} You can test if your DNS setup is working.
-{GREEN}3.{RESET} Use 'List All Profiles' to see all available profiles in the config file.
-{GREEN}4.{RESET} Check query usage to monitor your profile statistics.
-{GREEN}5.{RESET} To exit the tool, simply choose the exit option.
-
-        """)
-        print(f"{CYAN}Options:{RESET}")
-        print(f"{GREEN}1. Activate NextDNS Profile{RESET}")
-        print(f"{GREEN}2. Test DNS Configuration{RESET}")
-        print(f"{GREEN}3. List All Profiles{RESET}")
-        print(f"{GREEN}4. Check Query Usage Stats{RESET}")
-        print(f"{GREEN}5. Exit{RESET}")
+        print(f"{CYAN}Use this tool to configure, test, and manage NextDNS.{RESET}".center(50))
+        print(f"{CYAN}Ensure the configuration file is correctly set up before proceeding.{RESET}".center(50))
+        print(f"\n{GREEN}Main Menu:{RESET}")
+        print(f"{CYAN}1. Activate NextDNS Profile{RESET}")
+        print(f"{CYAN}2. Test DNS Configuration{RESET}")
+        print(f"{CYAN}3. List All Profiles{RESET}")
+        print(f"{CYAN}4. Check Query Usage Stats{RESET}")
+        print(f"{CYAN}5. Exit{RESET}")
         
         choice = input(f"\n{GREEN}Select an option: {RESET}")
         
