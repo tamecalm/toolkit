@@ -66,6 +66,7 @@ def activate_nextdns(profile_name):
         print(f"{CYAN}[INFO] Testing DNS-over-HTTPS (DoH)...{RESET}")
         loading_animation("Testing DoH connection")
         response = requests.get(doh_url, headers={"Authorization": f"Bearer {API_KEY}"})
+        print(f"[DEBUG] DoH URL: {doh_url}")
         if response.status_code == 200:
             print(f"{GREEN}[SUCCESS] DNS-over-HTTPS (DoH) is active.{RESET}")
         else:
@@ -100,7 +101,7 @@ def check_query_usage():
         if response.status_code == 200:
             data = response.json()
             for profile in data:
-                print(f"{GREEN}Profile: {profile['name']}{RESET}")
+                print(f"{GREEN}Profile: {profile['id']}{RESET}")
                 print(f"  Queries Used: {profile['queries']}")
                 print(f"  Queries Left: {profile['remainingQueries']}")
         else:
