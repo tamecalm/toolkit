@@ -43,8 +43,8 @@ def install_miniupnpc():
     try:
         if system == "linux":
             if "com.termux" in os.environ.get("PREFIX", ""):
-                subprocess.run(["pkg", "install", "-y", "miniupnpc"], check=True)
-                log_and_print("MiniUPnP installed in Termux.")
+                log_and_print("Warning: Termux environment detected. You cannot use NextDNS in Termux.", level="ERROR")
+                return
             else:
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
                 if "ubuntu" in distro or "debian" in distro:
@@ -128,9 +128,8 @@ def detect_environment_and_install():
 
         if system == "linux":
             if "com.termux" in os.environ.get("PREFIX", ""):
-                log_and_print("Termux environment detected. Installing miniupnpc...", level="INFO")
-                subprocess.run(["pkg", "install", "-y", "miniupnpc"], check=True)
-                log_and_print("NextDNS is ready for DoT (DNS over TLS) configuration.")
+                log_and_print("Warning: Termux environment detected. You cannot use NextDNS in Termux.", level="ERROR")
+                return
             else:
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
                 if "ubuntu" in distro or "debian" in distro:
