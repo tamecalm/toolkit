@@ -154,21 +154,18 @@ main_menu() {
         term_width=$(tput cols)
         x=$(( (term_width - 40) / 2 ))
 
-        # Art banner for JOHN
-        art=$(cat <<EOF
-${DARK_GREEN}
+        # Centered art banner for JOHN KIT
+        art="     __      _______ _______     _       _ 
+    /\ \    / /  __ \__   __|   (_)     (_)
+   /  \ \  / /| |__) | | |      _ _ __   _ 
+  / /\ \ \/ / |  ___/  | |     | | '_ \ | |
+ / ____ \  /  | |      | |     | | | | || |
+/_/    \_\/   |_|      |_|     |_|_| |_|/ |                                           
+                                        |__/"
 
-     _    ___    _   _   _   _   _  __  ___   _____
-    | |  / _ \  | | | | | \ | | | |/ / |_ _| |_   _|
- _  | | | | | | | |_| | |  \| | | ' /   | |    | |
-| |_| | | |_| | |  _  | | |\  | | . \   | |    | |
- \___/   \___/  |_| |_| |_| \_| |_|\_\ |___|   |_|
-
-                                           
-${DARK_RESET}
-EOF
-        )
-        printf "%*s\n" $(( (term_width + ${#art}) / 2 )) "$art"
+        while IFS= read -r line; do
+            printf "%*s\n" $(( (term_width + ${#line}) / 2 )) "$line"
+        done <<<"$art"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
         printf "%*s===========================================\n" $x ""
