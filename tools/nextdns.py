@@ -113,11 +113,21 @@ def main_menu():
     while True:
         os.system("clear")
         print(f"{GREEN}--- NextDNS Manager ---{RESET}".center(50))
-        print(f"{CYAN}1. Activate NextDNS Profile{RESET}".center(50))
-        print(f"{CYAN}2. Test DNS Configuration{RESET}".center(50))
-        print(f"{CYAN}3. List All Profiles{RESET}".center(50))
-        print(f"{CYAN}4. Check Query Usage Stats{RESET}".center(50))
-        print(f"{CYAN}5. Exit{RESET}".center(50))
+        print(f"\n{CYAN}Guide:{RESET}")
+        print(f"""
+{GREEN}1.{RESET} Use this tool to configure and activate NextDNS profiles.
+{GREEN}2.{RESET} You can test if your DNS setup is working.
+{GREEN}3.{RESET} Use 'List All Profiles' to see all available profiles in the config file.
+{GREEN}4.{RESET} Check query usage to monitor your profile statistics.
+{GREEN}5.{RESET} To exit the tool, simply choose the exit option.
+
+        """)
+        print(f"{CYAN}Options:{RESET}")
+        print(f"{GREEN}1. Activate NextDNS Profile{RESET}")
+        print(f"{GREEN}2. Test DNS Configuration{RESET}")
+        print(f"{GREEN}3. List All Profiles{RESET}")
+        print(f"{GREEN}4. Check Query Usage Stats{RESET}")
+        print(f"{GREEN}5. Exit{RESET}")
         
         choice = input(f"\n{GREEN}Select an option: {RESET}")
         
