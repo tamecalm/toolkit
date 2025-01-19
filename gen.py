@@ -20,6 +20,7 @@ standard_libs.update({
 
 # Ethical hacker theme style for output
 def print_banner():
+    os.system("clear")  # Clear the terminal screen
     print("\033[92m")
     print("=" * 60)
     print("   🔍  Python Dependency Analyzer & Installer  💻")
@@ -29,7 +30,7 @@ def print_banner():
 def progress_bar(total, current, length=50):
     filled = int(length * current // total)
     bar = "█" * filled + "-" * (length - filled)
-    print(f"\r[{bar}] {current}/{total} scripts processed", end="", flush=True)
+    print(f"\r[{bar}] {current}/{total}", end="", flush=True)
 
 def log_error(message):
     with open("data.log", "a") as log_file:
@@ -80,7 +81,16 @@ def install_requirements():
     """Install dependencies from requirements.txt."""
     try:
         print("\033[93mInstalling dependencies...\033[0m")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        with open("requirements.txt", "r") as req_file:
+            requirements = [line.strip() for line in req_file if line.strip()]
+        
+        total_requirements = len(requirements)
+        for i, package in enumerate(requirements, start=1):
+            progress_bar(total_requirements, i)
+            subprocess.check_call(
+                [sys.executable, "-m", "pip", "install", package, "--no-binary", ":all:"]
+            )
+            time.sleep(0.1)
         print("\033[92mDependencies installed successfully!\033[0m")
         log_info("Dependencies installed successfully.")
     except subprocess.CalledProcessError as e:
