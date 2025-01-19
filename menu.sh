@@ -278,7 +278,12 @@ EOF
             11) run_script "clam_av.py" ;;
             12) run_modules "gen.py" ;;
             13) auto_update ;;
-            0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
+            0) 
+    clear
+    echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"
+    break
+    ;;
+          #  0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
 
