@@ -3,6 +3,7 @@ import ast
 import sys
 import subprocess
 import sysconfig
+import time
 
 # Define the directory where your Python scripts are located
 scripts_directory = "tools"  # Update this to the directory containing your Python scripts
@@ -17,34 +18,58 @@ standard_libs.update({
     # Add any additional modules from Python's standard library here
 })
 
+# Ethical hacker theme style for output
+def print_banner():
+    print("\033[92m")
+    print("=" * 60)
+    print("   🔍  Python Dependency Analyzer & Installer  💻")
+    print("=" * 60)
+    print("\033[0m")
+
+def progress_bar(total, current, length=50):
+    filled = int(length * current // total)
+    bar = "█" * filled + "-" * (length - filled)
+    print(f"\r[{bar}] {current}/{total} scripts processed", end="", flush=True)
+
+def log_error(message):
+    with open("data.log", "a") as log_file:
+        log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - ERROR: {message}\n")
+
+def log_info(message):
+    with open("data.log", "a") as log_file:
+        log_file.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - INFO: {message}\n")
+
 def find_imports_in_script(script_path):
     """Scan a Python script for import statements."""
-    with open(script_path, "r") as file:
-        tree = ast.parse(file.read(), filename=script_path)
-    
-    # Extract all imports
-    imports = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.add(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            imports.add(node.module)
-    
-    return imports
+    try:
+        with open(script_path, "r") as file:
+            tree = ast.parse(file.read(), filename=script_path)
+        imports = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    imports.add(alias.name)
+            elif isinstance(node, ast.ImportFrom):
+                imports.add(node.module)
+        return imports
+    except Exception as e:
+        log_error(f"Error parsing script {script_path}: {e}")
+        return set()
 
 def find_all_imports_in_directory(directory):
     """Find all imports in all Python scripts in a directory."""
     all_imports = set()
-    
-    # Walk through the scripts directory and find all Python files
+    scripts = []
     for root, _, files in os.walk(directory):
-        for file in files:
-            if file.endswith(".py"):
-                script_path = os.path.join(root, file)
-                imports = find_imports_in_script(script_path)
-                all_imports.update(imports)
-    
+        scripts.extend([os.path.join(root, file) for file in files if file.endswith(".py")])
+
+    total_scripts = len(scripts)
+    for i, script_path in enumerate(scripts, start=1):
+        imports = find_imports_in_script(script_path)
+        all_imports.update(imports)
+        progress_bar(total_scripts, i)
+        time.sleep(0.05)  # Simulate progress
+    print()  # Move to the next line after the progress bar
     return all_imports
 
 def filter_third_party_imports(imports):
@@ -54,35 +79,41 @@ def filter_third_party_imports(imports):
 def install_requirements():
     """Install dependencies from requirements.txt."""
     try:
-        print("Installing dependencies...")
+        print("\033[93mInstalling dependencies...\033[0m")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+        print("\033[92mDependencies installed successfully!\033[0m")
+        log_info("Dependencies installed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"Error occurred during installation: {e}")
-        with open("gen.log", "w") as log_file:
-            log_file.write(f"Error occurred during installation: {e}")
-        print("Installation failed. See gen.log for details.")
+        error_message = f"Error occurred during installation: {e}"
+        print(f"\033[91m{error_message}\033[0m")
+        log_error(error_message)
 
-# Get all unique imports from all Python scripts in the tools directory
-all_imports = find_all_imports_in_directory(scripts_directory)
+# Main execution flow
+print_banner()
 
-# Filter out standard library imports
-third_party_imports = filter_third_party_imports(all_imports)
+try:
+    all_imports = find_all_imports_in_directory(scripts_directory)
+    third_party_imports = filter_third_party_imports(all_imports)
+    incorrect_imports = third_party_imports.intersection(standard_libs)
+    if incorrect_imports:
+        log_info(f"Found built-in modules mistakenly added: {incorrect_imports}")
+        third_party_imports -= incorrect_imports
 
-# If there are any built-in or standard libraries erroneously added to the third_party_imports, remove them
-incorrect_imports = third_party_imports.intersection(standard_libs)
-if incorrect_imports:
-    print(f"Found built-in modules mistakenly added: {incorrect_imports}")
-    third_party_imports -= incorrect_imports  # Remove these from the list
+    with open("requirements.txt", "w") as req_file:
+        for package in sorted(third_party_imports):
+            req_file.write(package + "\n")
 
-# Write the third-party imports to requirements.txt
-with open("requirements.txt", "w") as req_file:
-    for package in sorted(third_party_imports):
-        req_file.write(package + "\n")
+    print(f"\033[94mGenerated requirements.txt with {len(third_party_imports)} unique dependencies.\033[0m")
+    log_info(f"Generated requirements.txt with {len(third_party_imports)} unique dependencies.")
 
-print(f"Generated requirements.txt with {len(third_party_imports)} unique dependencies.")
+    if third_party_imports:
+        install_requirements()
+    else:
+        print("\033[92mNo third-party dependencies to install.\033[0m")
+        log_info("No third-party dependencies to install.")
+except Exception as e:
+    error_message = f"An unexpected error occurred: {e}"
+    print(f"\033[91m{error_message}\033[0m")
+    log_error(error_message)
 
-# If no third-party dependencies found, skip installation
-if third_party_imports:
-    install_requirements()
-else:
-    print("No third-party dependencies to install.")
+print("\033[92mTask completed. Check data.log for detailed logs.\033[0m")
