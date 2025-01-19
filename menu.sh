@@ -276,7 +276,7 @@ EOF
             9) run_script "http_request.py" ;;
             10) run_script "logs_viewer.py" ;;
             11) run_script "clam_av.py" ;;
-            12) run_modules "run.py" ;;
+            12) run_modules "gen.py" ;;
             13) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
