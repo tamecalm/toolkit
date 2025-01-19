@@ -15,6 +15,72 @@ DARK_RESET="\033[0m"
 OWNER_NAME="John"
 GITHUB_REPO="https://github.com/tamecalm/toolkit"
 
+# Function to log and print messages
+log_and_print() {
+    local message=$1
+    local level=${2:-"INFO"}
+    echo "$(date '+%Y-%m-%d %H:%M:%S'), $level, $message" >> "$LOG_FILE"
+    echo -e "${DARK_CYAN}[${level}]${DARK_RESET} $message"
+}
+
+# Function to detect environment and install dependencies
+detect_environment_and_install() {
+    log_and_print "Detecting environment and installing necessary tools..."
+
+    # Detect the operating system
+    local os=$(uname | tr '[:upper:]' '[:lower:]')
+
+    if [[ $os == "linux" ]]; then
+        if [[ -d "$PREFIX" && -n "$(echo $PREFIX | grep 'com.termux')" ]]; then
+            log_and_print "Termux environment detected. Checking dependencies..."
+            required_packages=("python" "curl" "jq" "git")
+            for pkg in "${required_packages[@]}"; do
+                if ! command -v "$pkg" &> /dev/null; then
+                    log_and_print "Installing $pkg..."
+                    pkg install -y "$pkg"
+                else
+                    log_and_print "$pkg is already installed."
+                fi
+            done
+        else
+            log_and_print "Linux environment detected. Checking distribution..."
+            local distro=$(lsb_release -is 2>/dev/null || echo "unknown" | tr '[:upper:]' '[:lower:]')
+            case $distro in
+                "ubuntu"|"debian")
+                    log_and_print "Ubuntu/Debian detected. Installing dependencies..."
+                    sudo apt update && sudo apt install -y python3 curl jq git
+                    ;;
+                "arch")
+                    log_and_print "Arch Linux detected. Installing dependencies..."
+                    sudo pacman -Syu --noconfirm python3 curl jq git
+                    ;;
+                "fedora"|"redhat")
+                    log_and_print "Fedora/RedHat detected. Installing dependencies..."
+                    sudo dnf install -y python3 curl jq git
+                    ;;
+                *)
+                    log_and_print "Unsupported Linux distribution. Please install dependencies manually." "ERROR"
+                    exit 1
+                    ;;
+            esac
+        fi
+    elif [[ $os == "darwin" ]]; then
+        log_and_print "macOS detected. Ensuring Homebrew and dependencies are installed..."
+        if ! command -v brew &> /dev/null; then
+            log_and_print "Homebrew not found. Please install Homebrew first." "ERROR"
+            exit 1
+        fi
+        brew install python jq curl git
+    elif [[ $os == "windows_nt" ]]; then
+        log_and_print "Windows detected. Ensure dependencies (Python, curl, jq, git) are installed manually." "INFO"
+    else
+        log_and_print "Unsupported operating system. Please set up dependencies manually." "ERROR"
+        exit 1
+    fi
+
+    log_and_print "Environment setup and tool verification complete."
+}
+
 # Function to display an animated loading screen
 loading_screen() {
     clear
@@ -181,7 +247,7 @@ EOF
              "\t5. Ping Utility\n" \
              "\t6. Traceroute\n" \
              "\t7. Port Forwarding\n" \
-             "\t8. Activate Nextdns\n" \
+             "\t8. Activate NextDNS\n" \
              "\t9. HTTP Request\n" \
              "\t10. Logs Viewer\n" \
              "\t11. Virus Scanner\n" \
@@ -213,6 +279,7 @@ EOF
     done
 }
 
-# Run the loading screen and main menu
+# Run the detect environment, loading screen, and main menu
+detect_environment_and_install
 loading_screen
 main_menu
