@@ -212,6 +212,12 @@ run_script() {
     python3 "tools/$script_name" || handle_error "Failed to run $script_name"
 }
 
+# Function to execute a python script that download required modules
+run_modules() {
+    local script_name=$1
+    python3 "$script_name" || handle_error "Failed to run $script_name"
+}
+
 # Main menu
 main_menu() {
     while true; do
@@ -251,7 +257,8 @@ EOF
              "\t9. HTTP Request\n" \
              "\t10. Logs Viewer\n" \
              "\t11. Virus Scanner\n" \
-             "\t12. Auto Update Script\n" \
+             "\t12. Install Required Modules\n" \
+             "\t13. Auto Update Script\n" \
              "\t0. Exit"
 
         echo -e "\n${DARK_RESET}Enter your choice: "
@@ -269,7 +276,8 @@ EOF
             9) run_script "http_request.py" ;;
             10) run_script "logs_viewer.py" ;;
             11) run_script "clam_av.py" ;;
-            12) auto_update ;;
+            12) run_modules "run.py" ;;
+            13) auto_update ;;
             0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
             *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
         esac
