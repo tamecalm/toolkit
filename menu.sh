@@ -183,8 +183,8 @@ EOF
              "\t7. Port Forwarding\n" \
              "\t8. Activate Nextdns\n" \
              "\t9. HTTP Request\n" \
-             "t10. Logs Viewer\n" \
-             "t11. Virus Scanner\n" \
+             "\t10. Logs Viewer\n" \
+             "\t11. Virus Scanner\n" \
              "\t12. Auto Update Script\n" \
              "\t0. Exit"
 
