@@ -23,7 +23,6 @@ log_and_print() {
     echo -e "${DARK_CYAN}[${level}]${DARK_RESET} $message"
 }
 
-# Function to detect environment and install dependencies
 detect_environment_and_install() {
     log_and_print "Detecting environment and installing necessary tools..."
 
@@ -71,8 +70,22 @@ detect_environment_and_install() {
             exit 1
         fi
         brew install python jq curl git
-    elif [[ $os == "windows_nt" ]]; then
-        log_and_print "Windows detected. Ensure dependencies (Python, curl, jq, git) are installed manually." "INFO"
+    elif [[ $os == "windows_nt" || $os == "msys" || $os == "mingw"* ]]; then
+        log_and_print "Windows or Git Bash detected. Checking for Git Bash environment..."
+        if command -v git &> /dev/null && git --version | grep -q "git version"; then
+            log_and_print "Git Bash detected. Ensure dependencies are installed via pacman or manual setup."
+            required_packages=("python" "curl" "jq" "git")
+            for pkg in "${required_packages[@]}"; do
+                if ! command -v "$pkg" &> /dev/null; then
+                    log_and_print "Installing $pkg using pacman..."
+                    pacman -S --noconfirm "$pkg" || log_and_print "Failed to install $pkg. Install it manually." "ERROR"
+                else
+                    log_and_print "$pkg is already installed."
+                fi
+            done
+        else
+            log_and_print "Windows detected. Ensure dependencies (Python, curl, jq, git) are installed manually." "INFO"
+        fi
     else
         log_and_print "Unsupported operating system. Please set up dependencies manually." "ERROR"
         exit 1
@@ -80,6 +93,7 @@ detect_environment_and_install() {
 
     log_and_print "Environment setup and tool verification complete."
 }
+
 
 # Function to display an animated loading screen
 loading_screen() {
@@ -227,17 +241,16 @@ main_menu() {
         x=$(( (term_width - 40) / 2 ))
 
         # Art banner for JOHN
-        art=$(cat <<EOF
-${DARK_GREEN}
-   __     ______     __  __     __   __    
-  /\ \   /\  __ \   /\ \_\ \   /\ "-.\ \   
- _\_\ \  \ \ \/\ \  \ \  __ \  \ \ \-.  \  
-/\_____\  \ \_____\  \ \_\ \_\  \ \_\\"\_\ 
-\/_____/   \/_____/   \/_/\/_/   \/_/ \/_/ 
-                                           
-${DARK_RESET}
-EOF
-        )
+art="${DARK_GREEN}
+   ██╗ ██████╗ ██╗  ██╗███╗   ██╗
+   ██║██╔═══██╗██║  ██║████╗  ██║
+   ██║██║   ██║███████║██╔██╗ ██║
+   ██║██║   ██║██╔══██║██║╚██╗██║
+   ██║╚██████╔╝██║  ██║██║ ╚████║
+   ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
+                                
+${DARK_RESET}"
+
         printf "%*s\n" $(( (term_width + ${#art}) / 2 )) "$art"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"

@@ -1,0 +1,2 @@
+2025-01-20 12:54:56, Failed to run gen.py
+2025-01-20 12:57:24, Failed to run logs_viewer.py
