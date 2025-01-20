@@ -5,11 +5,12 @@ LOG_FILE="logs.csv"
 ERROR_LOG="err.txt"
 
 # Define theme colors
-DARK_GREEN="\033[1;32m"
-DARK_CYAN="\033[1;36m"
-DARK_RED="\033[1;31m"
-DARK_BOLD="\033[1m"
-DARK_RESET="\033[0m"
+DARK_GREEN="\e[1;32m"
+DARK_CYAN="\e[1;36m"
+DARK_RED="\e[1;31m"
+DARK_BOLD="\e[1m"
+DARK_RESET="\e[0m"
+
 
 # Theme and owner details
 OWNER_NAME="John"
