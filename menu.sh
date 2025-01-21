@@ -405,6 +405,7 @@ while true; do
     read -r -n 1
 done
 
+}
 
 # Run the detect environment, loading screen, and main menu
 detect_environment_and_install
