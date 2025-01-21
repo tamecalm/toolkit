@@ -18,6 +18,9 @@ standard_libs.update({
     # Add any additional modules from Python's standard library here
 })
 
+# List of problematic packages to skip during installation
+problematic_packages = {"miniupnpc"}  # Add known problematic packages here
+
 # Ethical hacker theme style for output
 def print_banner():
     os.system("clear")  # Clear the terminal screen
@@ -87,14 +90,24 @@ def install_requirements():
         total_requirements = len(requirements)
         for i, package in enumerate(requirements, start=1):
             progress_bar(total_requirements, i)
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", package, "--no-binary", ":all:"]
-            )
+            
+            if package in problematic_packages:
+                warning_message = f"Skipping {package} due to known issues."
+                print(f"\n\033[93m{warning_message}\033[0m")
+                log_info(warning_message)
+                continue
+            
+            try:
+                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            except subprocess.CalledProcessError as e:
+                error_message = f"Failed to install {package}: {e}"
+                print(f"\n\033[91m{error_message}\033[0m")
+                log_error(error_message)
             time.sleep(0.1)
         print("\033[92mDependencies installed successfully!\033[0m")
         log_info("Dependencies installed successfully.")
-    except subprocess.CalledProcessError as e:
-        error_message = f"Error occurred during installation: {e}"
+    except Exception as e:
+        error_message = f"An unexpected error occurred during installation: {e}"
         print(f"\033[91m{error_message}\033[0m")
         log_error(error_message)
 
