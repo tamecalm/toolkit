@@ -8,9 +8,28 @@ from colorama import Fore, Style
 try:
     import miniupnpc
 except ImportError:
-    print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Attempting to install it..." + Style.RESET_ALL)
-    subprocess.check_call(["python3", "-m", "pip", "install", "miniupnpc"])
-    import miniupnpc
+    import platform
+    import subprocess
+
+    system = platform.system().lower()
+    if system == "linux":
+        try:
+            # Detect distribution using `lsb_release`
+            distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
+            if "ubuntu" in distro or "debian" in distro:
+                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing 'python3-miniupnpc' via apt..." + Style.RESET_ALL)
+                subprocess.check_call(["sudo", "apt", "update"])
+                subprocess.check_call(["sudo", "apt", "install", "-y", "python3-miniupnpc"])
+                import miniupnpc
+            else:
+                print(Fore.RED + f"[ERROR] 'miniupnpc' module not found, and your distro ({distro}) is unsupported for automatic installation." + Style.RESET_ALL)
+                exit(1)
+        except subprocess.CalledProcessError as e:
+            print(Fore.RED + f"[ERROR] Failed to install 'python3-miniupnpc': {e}" + Style.RESET_ALL)
+            exit(1)
+    else:
+        print(Fore.RED + "[ERROR] 'miniupnpc' module not found. Please install it manually." + Style.RESET_ALL)
+        exit(1)
 
 # Set up logging
 LOG_FILE = "data.log"
