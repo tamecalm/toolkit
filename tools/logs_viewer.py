@@ -102,6 +102,7 @@ def detect_environment_and_install():
     except Exception as e:
         log_and_print(f"Error during environment detection: {str(e)}", level="ERROR")
         sys.exit(1)
+        clear_screen()
 
 
 def view_logs():
