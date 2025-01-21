@@ -13,10 +13,10 @@ except ImportError:
         system = platform.system().lower()
         try:
             if "com.termux" in os.environ.get("PREFIX", ""):
-                # Handle Termux environment
-                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via Termux (pkg)..." + Style.RESET_ALL)
-                subprocess.check_call(["pkg", "update", "-y"])
-                subprocess.check_call(["pkg", "install", "-y", "miniupnpc"])
+                # Skip installation for Termux and provide instructions
+                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Please install it manually on Termux using:" + Style.RESET_ALL)
+                print(Fore.CYAN + "pkg update -y && pkg install -y miniupnpc" + Style.RESET_ALL)
+                return  # Continue script execution without exiting
             elif system == "linux":
                 # Detect distribution
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
