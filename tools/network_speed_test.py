@@ -119,5 +119,6 @@ if __name__ == "__main__":
     print("\033[1;36m" + "=" * 40 + "\033[0m")
 
     # Check dependencies and run the test
+    detect_environment_and_install()
     check_dependency()
     network_speed_test()
