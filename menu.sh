@@ -30,16 +30,21 @@ detect_environment_and_install() {
     # Detect the operating system
     local os=$(uname | tr '[:upper:]' '[:lower:]')
 
+    # Function to check if a package is installed
+    is_installed() {
+        command -v "$1" &> /dev/null
+    }
+
     if [[ $os == "linux" ]]; then
         if [[ -d "$PREFIX" && -n "$(echo $PREFIX | grep 'com.termux')" ]]; then
             log_and_print "Termux environment detected. Checking dependencies..."
             required_packages=("python" "curl" "jq" "git")
             for pkg in "${required_packages[@]}"; do
-                if ! command -v "$pkg" &> /dev/null; then
+                if is_installed "$pkg"; then
+                    log_and_print "$pkg is already installed."
+                else
                     log_and_print "Installing $pkg..."
                     pkg install -y "$pkg"
-                else
-                    log_and_print "$pkg is already installed."
                 fi
             done
         else
@@ -66,11 +71,25 @@ detect_environment_and_install() {
             case $distro in
                 "ubuntu"|"debian")
                     log_and_print "Ubuntu/Debian detected. Installing dependencies..."
-                    sudo apt update && sudo apt install -y python3 curl jq git
+                    sudo apt update
+                    for pkg in "python3" "curl" "jq" "git"; do
+                        if is_installed "$pkg"; then
+                            log_and_print "$pkg is already installed."
+                        else
+                            sudo apt install -y "$pkg"
+                        fi
+                    done
                     ;;
                 "arch")
                     log_and_print "Arch Linux detected. Installing dependencies..."
-                    sudo pacman -Syu --noconfirm python3 curl jq git
+                    sudo pacman -Syu --noconfirm
+                    for pkg in "python3" "curl" "jq" "git"; do
+                        if is_installed "$pkg"; then
+                            log_and_print "$pkg is already installed."
+                        else
+                            sudo pacman -S --noconfirm "$pkg"
+                        fi
+                    done
                     ;;
                 "fedora"|"redhat")
                     log_and_print "Fedora/RedHat detected. Installing dependencies..."
@@ -88,18 +107,24 @@ detect_environment_and_install() {
             log_and_print "Homebrew not found. Please install Homebrew first." "ERROR"
             exit 1
         fi
-        brew install python jq curl git
+        for pkg in "python" "jq" "curl" "git"; do
+            if is_installed "$pkg"; then
+                log_and_print "$pkg is already installed."
+            else
+                brew install "$pkg"
+            fi
+        done
     elif [[ $os == "windows_nt" || $os == "msys" || $os == "mingw"* ]]; then
         log_and_print "Windows or Git Bash detected. Checking for Git Bash environment..."
         if command -v git &> /dev/null && git --version | grep -q "git version"; then
             log_and_print "Git Bash detected. Ensure dependencies are installed via pacman or manual setup."
             required_packages=("python" "curl" "jq" "git")
             for pkg in "${required_packages[@]}"; do
-                if ! command -v "$pkg" &> /dev/null; then
+                if is_installed "$pkg"; then
+                    log_and_print "$pkg is already installed."
+                else
                     log_and_print "Installing $pkg using pacman..."
                     pacman -S --noconfirm "$pkg" || log_and_print "Failed to install $pkg. Install it manually." "ERROR"
-                else
-                    log_and_print "$pkg is already installed."
                 fi
             done
         else
