@@ -11,7 +11,6 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s"
 )
-# Configure Logging 2
 
 def log_and_print(message, level="INFO"):
     """Log a message and print it to the console."""
@@ -20,7 +19,7 @@ def log_and_print(message, level="INFO"):
     log_func(message)
     print(message)
 
-# Check Dependecy
+# Check Dependency
 def check_dependency():
     """Ensure that speedtest-cli is installed."""
     if not shutil.which("speedtest-cli"):
@@ -37,61 +36,61 @@ def check_dependency():
 def detect_environment_and_install():
     """Detect the environment and install necessary dependencies."""
     try:
-        logging.info("Detecting environment...", level="INFO")
+        logging.info("Detecting environment...")
 
         # Detect platform
         system = platform.system().lower()
-        logging.info(f"Operating System: {system}", level="INFO")
+        logging.info(f"Operating System: {system}")
 
         if system == "linux":
             # Check for Termux environment
             if "com.termux" in os.environ.get("PREFIX", ""):
-                logging.info("Termux environment detected. Installing dependencies...", level="INFO")
+                logging.info("Termux environment detected. Installing dependencies...")
                 subprocess.run(["pkg", "install", "-y", "python", "pip"], check=True)
             else:
                 # Check Linux distribution using lsb_release
                 try:
                     distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
                 except FileNotFoundError:
-                    logging.info("'lsb_release' command not found. Unable to determine Linux distribution.", level="ERROR")
+                    logging.error("'lsb_release' command not found. Unable to determine Linux distribution.")
                     sys.exit(1)
 
-                logging.info(f"Detected Linux Distribution: {distro}", level="INFO")
+                logging.info(f"Detected Linux Distribution: {distro}")
 
                 if "ubuntu" in distro or "debian" in distro:
-                    logging.info("Ubuntu/Debian detected. Installing dependencies...", level="INFO")
+                    logging.info("Ubuntu/Debian detected. Installing dependencies...")
                     subprocess.run(["sudo", "apt", "update"], check=True)
                     subprocess.run(["sudo", "apt", "install", "-y", "python3", "python3-pip"], check=True)
                 elif "arch" in distro:
-                    logging.info("Arch Linux detected. Installing dependencies...", level="INFO")
+                    logging.info("Arch Linux detected. Installing dependencies...")
                     subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "python", "python-pip"], check=True)
                 elif "fedora" in distro or "redhat" in distro:
-                    logging.info("Fedora/RedHat detected. Installing dependencies...", level="INFO")
+                    logging.info("Fedora/RedHat detected. Installing dependencies...")
                     subprocess.run(["sudo", "dnf", "install", "-y", "python3", "python3-pip"], check=True)
                 else:
-                    logging.info("Unsupported Linux distribution. Please install dependencies manually.", level="ERROR")
+                    logging.error("Unsupported Linux distribution. Please install dependencies manually.")
                     sys.exit(1)
 
         elif system == "darwin":
             # macOS
-            logging.info("macOS detected. Installing dependencies via Homebrew...", level="INFO")
+            logging.info("macOS detected. Installing dependencies via Homebrew...")
             subprocess.run(["brew", "install", "python", "pip"], check=True)
 
         elif system == "windows":
             # Windows
-            logging.info("Windows detected. Checking for Python installation...", level="INFO")
+            logging.info("Windows detected. Checking for Python installation...")
             if not shutil.which("python") and not shutil.which("python3"):
-                logging.info("Python not found. Please download and install it from https://www.python.org/.", level="ERROR")
+                logging.error("Python not found. Please download and install it from https://www.python.org/.")
                 sys.exit(1)
 
         else:
-            llogging.info("Unsupported system. Please install dependencies manually.", level="ERROR")
+            logging.error("Unsupported system. Please install dependencies manually.")
             sys.exit(1)
 
-        logging.info("Dependencies installed successfully.", level="INFO")
+        logging.info("Dependencies installed successfully.")
 
     except subprocess.CalledProcessError as e:
-        logging.info(f"Failed to install dependencies: {e}", level="ERROR")
+        logging.error(f"Failed to install dependencies: {e}")
         sys.exit(1)
 
 def network_speed_test():
