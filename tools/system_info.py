@@ -27,6 +27,17 @@ def log_and_print(message, level="INFO"):
         logging.info(message)
         print(Fore.CYAN + f"[INFO] {message}" + Style.RESET_ALL)
 
+# Install the psutil module
+def install_psutil():
+    """Install psutil module if not already installed."""
+    try:
+        import psutil
+        log_and_print("psutil is already installed.", level="INFO")
+    except ImportError:
+        log_and_print("psutil not found, installing...", level="INFO")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "psutil"])
+        log_and_print("psutil has been installed.", level="INFO")
+
 def detect_environment_and_install():
     """Detect the environment and install required tools if necessary."""
     try:
@@ -147,6 +158,7 @@ def battery_status():
 
 if __name__ == "__main__":
     log_and_print("System Info script started.", level="INFO")
+    install_psutil()  # Ensure psutil is installed
     detect_environment_and_install()
     cpu_memory_usage()
     disk_usage()
