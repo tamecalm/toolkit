@@ -12,7 +12,12 @@ except ImportError:
         """Handle the installation of miniupnpc based on the operating system."""
         system = platform.system().lower()
         try:
-            if system == "linux":
+            if "com.termux" in os.environ.get("PREFIX", ""):
+                # Handle Termux environment
+                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via Termux (pkg)..." + Style.RESET_ALL)
+                subprocess.check_call(["pkg", "update", "-y"])
+                subprocess.check_call(["pkg", "install", "-y", "miniupnpc"])
+            elif system == "linux":
                 # Detect distribution
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
                 if "ubuntu" in distro or "debian" in distro:
@@ -50,6 +55,7 @@ except ImportError:
             exit(1)
 
     install_miniupnpc()
+
 
 # Set up logging
 LOG_FILE = "data.log"
