@@ -259,18 +259,29 @@ main_menu() {
         term_width=$(tput cols)
         x=$(( (term_width - 40) / 2 ))
 
-        # Art banner for JOHN
-art="${DARK_GREEN}
+        # Banner without color and centered
+banner="
    ██╗ ██████╗ ██╗  ██╗███╗   ██╗
    ██║██╔═══██╗██║  ██║████╗  ██║
    ██║██║   ██║███████║██╔██╗ ██║
    ██║██║   ██║██╔══██║██║╚██╗██║
    ██║╚██████╔╝██║  ██║██║ ╚████║
    ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
-                                
-${DARK_RESET}"
+"
 
-        printf "%*s\n" $(( (term_width + ${#art}) / 2 )) "$art"
+# Get the terminal width
+cols=$(tput cols)
+
+# Calculate the length of the banner (longest line)
+banner_length=$(echo "$banner" | wc -L)
+
+# Calculate padding to center the banner
+padding=$(( (cols - banner_length) / 2 ))
+
+# Print the banner centered
+while IFS= read -r line; do
+    printf "%*s%s\n" $padding "" "$line"
+done <<< "$banner"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
         printf "%*s===========================================\n" $x ""
