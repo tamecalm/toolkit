@@ -2,6 +2,7 @@ import os
 import platform
 import subprocess
 import logging
+import miniupnpc
 from colorama import Fore, Style
 
 # Try to import miniupnpc and handle its installation if not found
