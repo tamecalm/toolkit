@@ -2,6 +2,7 @@ import subprocess
 import logging
 import sys
 import os
+import distro
 from colorama import Fore, Style
 import platform
 from shutil import which

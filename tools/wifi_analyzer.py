@@ -3,6 +3,7 @@ import sys
 import os
 import platform
 import logging
+import distro
 from shutil import which
 from colorama import Fore, Style
 
