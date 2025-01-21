@@ -8,28 +8,48 @@ from colorama import Fore, Style
 try:
     import miniupnpc
 except ImportError:
-    import platform
-    import subprocess
-
-    system = platform.system().lower()
-    if system == "linux":
+    def install_miniupnpc():
+        """Handle the installation of miniupnpc based on the operating system."""
+        system = platform.system().lower()
         try:
-            # Detect distribution using `lsb_release`
-            distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
-            if "ubuntu" in distro or "debian" in distro:
-                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing 'python3-miniupnpc' via apt..." + Style.RESET_ALL)
-                subprocess.check_call(["sudo", "apt", "update"])
-                subprocess.check_call(["sudo", "apt", "install", "-y", "python3-miniupnpc"])
-                import miniupnpc
+            if system == "linux":
+                # Detect distribution
+                distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
+                if "ubuntu" in distro or "debian" in distro:
+                    print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing 'python3-miniupnpc' via apt..." + Style.RESET_ALL)
+                    subprocess.check_call(["sudo", "apt", "update"])
+                    subprocess.check_call(["sudo", "apt", "install", "-y", "python3-miniupnpc"])
+                elif "arch" in distro:
+                    print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via pacman..." + Style.RESET_ALL)
+                    subprocess.check_call(["sudo", "pacman", "-S", "--noconfirm", "miniupnpc"])
+                elif "fedora" in distro or "redhat" in distro:
+                    print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via dnf..." + Style.RESET_ALL)
+                    subprocess.check_call(["sudo", "dnf", "install", "-y", "miniupnpc"])
+                else:
+                    print(Fore.RED + f"[ERROR] Unsupported Linux distribution: {distro}. Install 'miniupnpc' manually." + Style.RESET_ALL)
+                    exit(1)
+            elif system == "darwin":
+                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via Homebrew..." + Style.RESET_ALL)
+                if subprocess.run(["brew", "list", "miniupnpc"], capture_output=True).returncode != 0:
+                    subprocess.check_call(["brew", "install", "miniupnpc"])
+            elif system == "windows":
+                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Installing via pip..." + Style.RESET_ALL)
+                subprocess.check_call(["pip", "install", "miniupnpc"])
             else:
-                print(Fore.RED + f"[ERROR] 'miniupnpc' module not found, and your distro ({distro}) is unsupported for automatic installation." + Style.RESET_ALL)
+                print(Fore.RED + "[ERROR] Unsupported operating system. Install 'miniupnpc' manually." + Style.RESET_ALL)
                 exit(1)
         except subprocess.CalledProcessError as e:
-            print(Fore.RED + f"[ERROR] Failed to install 'python3-miniupnpc': {e}" + Style.RESET_ALL)
+            print(Fore.RED + f"[ERROR] Failed to install 'miniupnpc': {e}" + Style.RESET_ALL)
             exit(1)
-    else:
-        print(Fore.RED + "[ERROR] 'miniupnpc' module not found. Please install it manually." + Style.RESET_ALL)
-        exit(1)
+        # Try importing again after installation
+        try:
+            global miniupnpc
+            import miniupnpc
+        except ImportError:
+            print(Fore.RED + "[ERROR] Failed to import 'miniupnpc' after installation." + Style.RESET_ALL)
+            exit(1)
+
+    install_miniupnpc()
 
 # Set up logging
 LOG_FILE = "data.log"
