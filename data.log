@@ -1,0 +1,4 @@
+2025-01-21 09:31:51 - ERROR: Error parsing script tools\clam_av.py: 'charmap' codec can't decode byte 0x90 in position 6763: character maps to <undefined>
+2025-01-21 09:31:51 - ERROR: Error parsing script tools\logs_viewer.py: 'charmap' codec can't decode byte 0x90 in position 631: character maps to <undefined>
+2025-01-21 09:31:52 - INFO: Generated requirements.txt with 4 unique dependencies.
+2025-01-21 09:34:03 - ERROR: Error occurred during installation: Command '['C:\\Users\\GWX Project\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe', '-m', 'pip', 'install', 'miniupnpc', '--no-binary', ':all:']' returned non-zero exit status 1.

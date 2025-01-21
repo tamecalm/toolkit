@@ -44,7 +44,19 @@ detect_environment_and_install() {
             done
         else
             log_and_print "Linux environment detected. Checking distribution..."
-            local distro=$(lsb_release -is 2>/dev/null || echo "unknown" | tr '[:upper:]' '[:lower:]')
+            
+            # Fallback for detecting distribution if lsb_release is unavailable
+            local distro
+            if command -v lsb_release &> /dev/null; then
+                distro=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+            else
+                if [[ -f /etc/os-release ]]; then
+                    distro=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+                else
+                    distro="unknown"
+                fi
+            fi
+            
             case $distro in
                 "ubuntu"|"debian")
                     log_and_print "Ubuntu/Debian detected. Installing dependencies..."
@@ -94,6 +106,7 @@ detect_environment_and_install() {
 
     log_and_print "Environment setup and tool verification complete."
 }
+
 
 
 # Function to display an animated loading screen
