@@ -3,7 +3,14 @@ import platform
 import subprocess
 import logging
 from colorama import Fore, Style
-import miniupnpc
+
+# Try to import miniupnpc and handle its installation if not found
+try:
+    import miniupnpc
+except ImportError:
+    print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Attempting to install it..." + Style.RESET_ALL)
+    subprocess.check_call(["pip", "install", "miniupnpc"])
+    import miniupnpc  # Retry import after installation
 
 # Set up logging
 LOG_FILE = "data.log"
@@ -24,17 +31,6 @@ def log_and_print(message, level="INFO"):
     else:
         logging.info(message)
         print(Fore.CYAN + f"[INFO] {message}" + Style.RESET_ALL)
-
-# Install the miniupnpc module
-def install_miniupnpc():
-    """Install miniupnpc module if not already installed."""
-    try:
-        import miniupnpc
-        log_and_print("miniupnpc is already installed.", level="INFO")
-    except ImportError:
-        log_and_print("miniupnpc not found, installing...", level="INFO")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "miniupnpc"])
-        log_and_print("miniupnpc has been installed.", level="INFO")
 
 
 def detect_environment_and_install():
@@ -124,8 +120,6 @@ def remove_port_forwarding(external_port, protocol):
 
 if __name__ == "__main__":
     log_and_print("Port Forwarding Setup started.", level="INFO")
-
-    install_miniupnpc()
 
     detect_environment_and_install()
 
