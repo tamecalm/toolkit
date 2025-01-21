@@ -45,15 +45,21 @@ detect_environment_and_install() {
         else
             log_and_print "Linux environment detected. Checking distribution..."
             
-            # Fallback for detecting distribution if lsb_release is unavailable
+            # First, try using lsb_release
             local distro
             if command -v lsb_release &> /dev/null; then
                 distro=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+                log_and_print "Detected distribution using lsb_release: $distro"
             else
+                log_and_print "lsb_release not found. Trying alternative methods..."
+                # Try reading /etc/os-release
                 if [[ -f /etc/os-release ]]; then
                     distro=$(grep '^ID=' /etc/os-release | cut -d'=' -f2 | tr -d '"' | tr '[:upper:]' '[:lower:]')
+                    log_and_print "Detected distribution using /etc/os-release: $distro"
                 else
+                    # If both methods fail, fallback to 'unknown'
                     distro="unknown"
+                    log_and_print "Unable to detect distribution. Using fallback 'unknown'."
                 fi
             fi
             
@@ -71,7 +77,7 @@ detect_environment_and_install() {
                     sudo dnf install -y python3 curl jq git
                     ;;
                 *)
-                    log_and_print "Unsupported Linux distribution. Please install dependencies manually." "ERROR"
+                    log_and_print "Unsupported Linux distribution or detection failed. Please install dependencies manually." "ERROR"
                     exit 1
                     ;;
             esac
@@ -106,7 +112,6 @@ detect_environment_and_install() {
 
     log_and_print "Environment setup and tool verification complete."
 }
-
 
 
 # Function to display an animated loading screen
