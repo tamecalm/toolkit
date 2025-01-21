@@ -9,8 +9,8 @@ try:
     import miniupnpc
 except ImportError:
     print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Attempting to install it..." + Style.RESET_ALL)
-    subprocess.check_call(["pip", "install", "miniupnpc"])
-    import miniupnpc  # Retry import after installation
+    subprocess.check_call(["python3", "-m", "pip", "install", "miniupnpc"])
+    import miniupnpc
 
 # Set up logging
 LOG_FILE = "data.log"
