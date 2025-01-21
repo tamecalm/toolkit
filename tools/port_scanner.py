@@ -42,14 +42,14 @@ def detect_environment_and_install():
                 subprocess.run(["pkg", "install", "-y", "nmap"], check=True)
             else:
                 # Check Linux distribution for package manager
-                distro = platform.linux_distribution()[0].lower()
-                if "ubuntu" in distro or "debian" in distro:
+                distro_name = distro.name().lower()  # Get the distribution name
+                if "ubuntu" in distro_name or "debian" in distro_name:
                     log_and_print("Ubuntu/Debian detected. Installing nmap...", level="INFO")
                     subprocess.run(["sudo", "apt", "install", "-y", "nmap"], check=True)
-                elif "arch" in distro:
+                elif "arch" in distro_name:
                     log_and_print("Arch Linux detected. Installing nmap...", level="INFO")
                     subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "nmap"], check=True)
-                elif "fedora" in distro or "redhat" in distro:
+                elif "fedora" in distro_name or "redhat" in distro_name:
                     log_and_print("Fedora/RedHat detected. Installing nmap...", level="INFO")
                     subprocess.run(["sudo", "dnf", "install", "-y", "nmap"], check=True)
                 else:
