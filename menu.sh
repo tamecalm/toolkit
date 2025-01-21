@@ -49,7 +49,7 @@ detect_environment_and_install() {
             done
         else
             log_and_print "Linux environment detected. Checking distribution..."
-
+            
             # First, try using lsb_release
             local distro
             if command -v lsb_release &> /dev/null; then
@@ -67,7 +67,7 @@ detect_environment_and_install() {
                     log_and_print "Unable to detect distribution. Using fallback 'unknown'."
                 fi
             fi
-
+            
             case $distro in
                 "ubuntu"|"debian")
                     log_and_print "Ubuntu/Debian detected. Installing dependencies..."
@@ -138,6 +138,144 @@ detect_environment_and_install() {
     log_and_print "Environment setup and tool verification complete."
 }
 
+
+# Function to display an animated loading screen
+loading_screen() {
+    clear
+
+    frames=(
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "      ███████████████████████████████████████████████████████████████      "
+        "       ████████ ████████ ████████ ████████ ████████ ████████ ████████       "
+        "        ██████   ██████   ██████   ██████   ██████   ██████   ██████        "
+    )
+
+    term_width=$(tput cols)
+    term_height=$(tput lines)
+
+    for frame in "${frames[@]}"; do
+        clear
+        frame_width=${#frame}
+        x=$(( (term_width - frame_width) / 2 ))
+        y=$(( (term_height - 7) / 2 ))
+
+        for ((i = 0; i < y; i++)); do
+            echo
+        done
+
+        printf "%*s%s\n" $x "" "$frame"
+        sleep 0.2
+    done
+
+    for i in {1..100}; do
+        clear
+        loading_text="Loading... $i%%"
+        loading_width=${#loading_text}
+        x=$(( (term_width - loading_width) / 2 ))
+        y=$(( (term_height - 1) / 2 ))
+
+        for ((j = 0; j < y; j++)); do
+            echo
+        done
+
+        printf "%*s%s\n" $x "" "$loading_text"
+        sleep 0.02
+    done
+}
+
+# Function to auto-update the script from GitHub
+auto_update() {
+    echo -e "${DARK_CYAN}[INFO] Checking for updates...${DARK_RESET}"
+
+    # Directory where the script is located
+    SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+
+    # GitHub API URL for the repository contents
+    API_URL="https://api.github.com/repos/tamecalm/toolkit/contents"
+
+    # Temporary file to store the list of repository files
+    REPO_FILES=$(mktemp)
+
+    # Recursive function to fetch and update files
+    update_files() {
+        local api_url="$1"
+        local dest_dir="$2"
+
+        # Fetch JSON data for the current directory
+        json_data=$(curl -s "$api_url")
+
+        if [[ -z "$json_data" ]]; then
+            echo -e "${DARK_RED}[ERROR] Failed to fetch repository data.${DARK_RESET}"
+            return
+        fi
+
+        # Loop through items in the JSON data
+        echo "$json_data" | jq -c '.[]' | while read -r item; do
+            item_type=$(echo "$item" | jq -r '.type')
+            item_path=$(echo "$item" | jq -r '.path')
+            download_url=$(echo "$item" | jq -r '.download_url')
+
+            dest_file="$dest_dir/$item_path"
+
+            # Add the file path to the repository file list
+            echo "$dest_file" >> "$REPO_FILES"
+
+            if [[ $item_type == "dir" ]]; then
+                # If it's a directory, create it and recurse
+                mkdir -p "$dest_file"
+                update_files "$API_URL/$item_path" "$dest_dir"
+            elif [[ $item_type == "file" ]]; then
+                # Download and update the file
+                echo -e "${DARK_CYAN}[INFO] Updating $item_path...${DARK_RESET}"
+                curl -s "$download_url" -o "$dest_file"
+            fi
+        done
+    }
+
+    # Start updating files from the repository root
+    update_files "$API_URL" "$SCRIPT_DIR"
+
+    # Remove any files that are not in the repository
+    echo -e "${DARK_CYAN}[INFO] Cleaning up unnecessary files...${DARK_RESET}"
+    find "$SCRIPT_DIR" -type f | while read -r local_file; do
+        if ! grep -Fxq "$local_file" "$REPO_FILES"; then
+            echo -e "${DARK_RED}[INFO] Removing $local_file...${DARK_RESET}"
+            rm -f "$local_file"
+        fi
+    done
+
+    # Cleanup temporary file
+    rm -f "$REPO_FILES"
+
+    # Make all .sh files executable
+    find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
+
+    echo -e "${DARK_GREEN}[INFO] Update completed. Restarting...${DARK_RESET}"
+
+    # Restart the updated menu.sh
+    exec "$SCRIPT_DIR/menu.sh"
+}
+
+# Function to handle errors
+handle_error() {
+    local error_message=$1
+    echo -e "${DARK_RED}[ERROR] ${error_message}${DARK_RESET}"
+    echo "$(date '+%Y-%m-%d %H:%M:%S'), $error_message" >> "$ERROR_LOG"
+}
+
+# Function to execute a Python script
+run_script() {
+    local script_name=$1
+    python3 "tools/$script_name" || handle_error "Failed to run $script_name"
+}
+
+# Function to execute a python script that download required modules
+run_modules() {
+    local script_name=$1
+    python3 "$script_name" || handle_error "Failed to run $script_name"
+}
+
 # Main menu
 main_menu() {
     while true; do
@@ -147,7 +285,7 @@ main_menu() {
         x=$(( (term_width - 40) / 2 ))
 
         # Banner without color and centered
-        banner="
+banner="
    ██╗ ██████╗ ██╗  ██╗███╗   ██╗
    ██║██╔═══██╗██║  ██║████╗  ██║
    ██║██║   ██║███████║██╔██╗ ██║
@@ -156,117 +294,117 @@ main_menu() {
    ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═══╝
 "
 
-        # Get the terminal width
-        cols=$(tput cols)
+# Get the terminal width
+cols=$(tput cols)
 
-        # Calculate the length of the banner (longest line)
-        banner_length=$(echo "$banner" | wc -L)
+# Calculate the length of the banner (longest line)
+banner_length=$(echo "$banner" | wc -L)
 
-        # Calculate padding to center the banner
-        padding=$(( (cols - banner_length) / 2 ))
+# Calculate padding to center the banner
+padding=$(( (cols - banner_length) / 2 ))
 
-        # Print the banner centered
-        while IFS= read -r line; do
-            printf "%*s%s\n" $padding "" "$line"
-        done <<< "$banner"
+# Print the banner centered
+while IFS= read -r line; do
+    printf "%*s%s\n" $padding "" "$line"
+done <<< "$banner"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        printf "%*s===========================================\n" $x ""
-        echo -e "${DARK_RESET}"
+printf "%*s===========================================\n" $x ""
+echo -e "${DARK_RESET}"
 
-        while true; do
-            # Main menu
-            echo "Choose an option:"
-            echo -e "\n${DARK_GREEN}" \
-                "\t1. Network Tools\n" \
-                "\t2. System Tools\n" \
-                "\t3. Miscellaneous\n" \
-                "\t0. Exit"
+while true; do
+    # Main menu
+    echo "Choose an option:"
+    echo -e "\n${DARK_GREEN}" \
+        "\t1. Network Tools\n" \
+        "\t2. System Tools\n" \
+        "\t3. Miscellaneous\n" \
+        "\t0. Exit"
 
-            echo -e "\n${DARK_RESET}Enter your choice: "
-            read -r choice
+    echo -e "\n${DARK_RESET}Enter your choice: "
+    read -r choice
 
-            case $choice in
-                1) # Network Tools Sub-menu
-                    while true; do
-                        echo -e "\n${DARK_GREEN}" \
-                            "\t1. Network Speed Test\n" \
-                            "\t2. Port Scanner\n" \
-                            "\t3. Wi-Fi Analyzer\n" \
-                            "\t4. Ping Utility\n" \
-                            "\t5. Traceroute\n" \
-                            "\t6. Port Forwarding\n" \
-                            "\t7. Activate NextDNS\n" \
-                            "\t0. Back to Main Menu"
+    case $choice in
+        1) # Network Tools Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. Network Speed Test\n" \
+                    "\t2. Port Scanner\n" \
+                    "\t3. Wi-Fi Analyzer\n" \
+                    "\t4. Ping Utility\n" \
+                    "\t5. Traceroute\n" \
+                    "\t6. Port Forwarding\n" \
+                    "\t7. Activate NextDNS\n" \
+                    "\t0. Back to Main Menu"
 
-                        echo -e "\n${DARK_RESET}Enter your choice: "
-                        read -r choice_network_tools
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_network_tools
 
-                        case $choice_network_tools in
-                            1) run_script "network_speed_test.py" ;;
-                            2) run_script "port_scanner.py" ;;
-                            3) run_script "wifi_analyzer.py" ;;
-                            4) run_script "ping.py" ;;
-                            5) run_script "traceroute.py" ;;
-                            6) run_script "port.py" ;;
-                            7) run_script "nextdns.py" ;;
-                            0) break ;;
-                            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-                        esac
-                    done
-                    ;;
-                2) # System Tools Sub-menu
-                    while true; do
-                        echo -e "\n${DARK_GREEN}" \
-                            "\t1. System Info\n" \
-                            "\t2. Logs Viewer\n" \
-                            "\t3. Virus Scanner\n" \
-                            "\t0. Back to Main Menu"
+                case $choice_network_tools in
+                    1) run_script "network_speed_test.py" ;;
+                    2) run_script "port_scanner.py" ;;
+                    3) run_script "wifi_analyzer.py" ;;
+                    4) run_script "ping.py" ;;
+                    5) run_script "traceroute.py" ;;
+                    6) run_script "port.py" ;;
+                    7) run_script "nextdns.py" ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        2) # System Tools Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. System Info\n" \
+                    "\t2. Logs Viewer\n" \
+                    "\t3. Virus Scanner\n" \
+                    "\t0. Back to Main Menu"
 
-                        echo -e "\n${DARK_RESET}Enter your choice: "
-                        read -r choice_system_tools
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_system_tools
 
-                        case $choice_system_tools in
-                            1) run_script "system_info.py" ;;
-                            2) run_script "logs_viewer.py" ;;
-                            3) run_script "clam_av.py" ;;
-                            0) break ;;
-                            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-                        esac
-                    done
-                    ;;
-                3) # Miscellaneous Sub-menu
-                    while true; do
-                        echo -e "\n${DARK_GREEN}" \
-                            "\t1. HTTP Request\n" \
-                            "\t2. Install Required Modules\n" \
-                            "\t3. Auto Update Script\n" \
-                            "\t0. Back to Main Menu"
+                case $choice_system_tools in
+                    1) run_script "system_info.py" ;;
+                    2) run_script "logs_viewer.py" ;;
+                    3) run_script "clam_av.py" ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        3) # Miscellaneous Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. HTTP Request\n" \
+                    "\t2. Install Required Modules\n" \
+                    "\t3. Auto Update Script\n" \
+                    "\t0. Back to Main Menu"
 
-                        echo -e "\n${DARK_RESET}Enter your choice: "
-                        read -r choice_miscellaneous
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_miscellaneous
 
-                        case $choice_miscellaneous in
-                            1) run_script "http_request.py" ;;
-                            2) run_modules "gen.py" ;;
-                            3) auto_update ;;
-                            0) break ;;
-                            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-                        esac
-                    done
-                    ;;
-                0)
-                    clear
-                    echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"
-                    break
-                    ;;
-                *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-            esac
+                case $choice_miscellaneous in
+                    1) run_script "http_request.py" ;;
+                    2) run_modules "gen.py" ;;
+                    3) auto_update ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        0)
+            clear
+            echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"
+            break
+            ;;
+        *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+    esac
 
-            echo -e "${DARK_CYAN}Press any key to return to the main menu...${DARK_RESET}"
-            read -r -n 1
-        done
-    done
+    echo -e "${DARK_CYAN}Press any key to return to the main menu...${DARK_RESET}"
+    read -r -n 1
+done
+
 }
 
 # Run the detect environment, loading screen, and main menu
