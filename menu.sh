@@ -309,56 +309,102 @@ while IFS= read -r line; do
 done <<< "$banner"
 
         echo -e "${DARK_CYAN}${DARK_BOLD}"
-        printf "%*s===========================================\n" $x ""
-        echo -e "${DARK_RESET}"
+printf "%*s===========================================\n" $x ""
+echo -e "${DARK_RESET}"
 
-        echo "Choose an option:"
-        echo -e "\n${DARK_GREEN}" \
-             "\t1. Network Speed Test\n" \
-             "\t2. Port Scanner\n" \
-             "\t3. Wi-Fi Analyzer\n" \
-             "\t4. System Info\n" \
-             "\t5. Ping Utility\n" \
-             "\t6. Traceroute\n" \
-             "\t7. Port Forwarding\n" \
-             "\t8. Activate NextDNS\n" \
-             "\t9. HTTP Request\n" \
-             "\t10. Logs Viewer\n" \
-             "\t11. Virus Scanner\n" \
-             "\t12. Install Required Modules\n" \
-             "\t13. Auto Update Script\n" \
-             "\t0. Exit"
+while true; do
+    # Main menu
+    echo "Choose an option:"
+    echo -e "\n${DARK_GREEN}" \
+        "\t1. Network Tools\n" \
+        "\t2. System Tools\n" \
+        "\t3. Miscellaneous\n" \
+        "\t0. Exit"
 
-        echo -e "\n${DARK_RESET}Enter your choice: "
-        read -r choice
+    echo -e "\n${DARK_RESET}Enter your choice: "
+    read -r choice
 
-        case $choice in
-            1) run_script "network_speed_test.py" ;;
-            2) run_script "port_scanner.py" ;;
-            3) run_script "wifi_analyzer.py" ;;
-            4) run_script "system_info.py" ;;
-            5) run_script "ping.py" ;;
-            6) run_script "traceroute.py" ;;
-            7) run_script "port.py" ;;
-            8) run_script "nextdns.py" ;;
-            9) run_script "http_request.py" ;;
-            10) run_script "logs_viewer.py" ;;
-            11) run_script "clam_av.py" ;;
-            12) run_modules "gen.py" ;;
-            13) auto_update ;;
-            0) 
-    clear
-    echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"
-    break
-    ;;
-          #  0) echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"; break ;;
-            *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
-        esac
+    case $choice in
+        1) # Network Tools Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. Network Speed Test\n" \
+                    "\t2. Port Scanner\n" \
+                    "\t3. Wi-Fi Analyzer\n" \
+                    "\t4. Ping Utility\n" \
+                    "\t5. Traceroute\n" \
+                    "\t6. Port Forwarding\n" \
+                    "\t7. Activate NextDNS\n" \
+                    "\t0. Back to Main Menu"
 
-        echo -e "${DARK_CYAN}Press any key to return to the main menu...${DARK_RESET}"
-        read -r -n 1
-    done
-}
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_network_tools
+
+                case $choice_network_tools in
+                    1) run_script "network_speed_test.py" ;;
+                    2) run_script "port_scanner.py" ;;
+                    3) run_script "wifi_analyzer.py" ;;
+                    4) run_script "ping.py" ;;
+                    5) run_script "traceroute.py" ;;
+                    6) run_script "port.py" ;;
+                    7) run_script "nextdns.py" ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        2) # System Tools Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. System Info\n" \
+                    "\t2. Logs Viewer\n" \
+                    "\t3. Virus Scanner\n" \
+                    "\t0. Back to Main Menu"
+
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_system_tools
+
+                case $choice_system_tools in
+                    1) run_script "system_info.py" ;;
+                    2) run_script "logs_viewer.py" ;;
+                    3) run_script "clam_av.py" ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        3) # Miscellaneous Sub-menu
+            while true; do
+                echo -e "\n${DARK_GREEN}" \
+                    "\t1. HTTP Request\n" \
+                    "\t2. Install Required Modules\n" \
+                    "\t3. Auto Update Script\n" \
+                    "\t0. Back to Main Menu"
+
+                echo -e "\n${DARK_RESET}Enter your choice: "
+                read -r choice_miscellaneous
+
+                case $choice_miscellaneous in
+                    1) run_script "http_request.py" ;;
+                    2) run_modules "gen.py" ;;
+                    3) auto_update ;;
+                    0) break ;;
+                    *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+                esac
+            done
+            ;;
+        0)
+            clear
+            echo -e "${DARK_GREEN}Exiting...${DARK_RESET}"
+            break
+            ;;
+        *) echo -e "${DARK_RED}Invalid option! Please try again.${DARK_RESET}" ;;
+    esac
+
+    echo -e "${DARK_CYAN}Press any key to return to the main menu...${DARK_RESET}"
+    read -r -n 1
+done
+
 
 # Run the detect environment, loading screen, and main menu
 detect_environment_and_install
