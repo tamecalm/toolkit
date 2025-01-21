@@ -2,7 +2,6 @@ import os
 import platform
 import subprocess
 import logging
-import miniupnpc
 from colorama import Fore, Style
 
 # Try to import miniupnpc and handle its installation if not found
@@ -14,10 +13,10 @@ except ImportError:
         system = platform.system().lower()
         try:
             if "com.termux" in os.environ.get("PREFIX", ""):
-                # Skip installation for Termux and provide instructions
-                print(Fore.YELLOW + "[WARNING] 'miniupnpc' module not found. Please install it manually on Termux using:" + Style.RESET_ALL)
-                print(Fore.CYAN + "pkg update -y && pkg install -y miniupnpc" + Style.RESET_ALL)
-                return  # Continue script execution without exiting
+                # Handle Termux environment where the installation might not work as expected
+                print(Fore.RED + "[ERROR] 'miniupnpc' is not compatible with the current Termux environment." + Style.RESET_ALL)
+                exit(1)  # Exit the script as 'miniupnpc' cannot be used directly on Termux
+
             elif system == "linux":
                 # Detect distribution
                 distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
@@ -51,6 +50,7 @@ except ImportError:
         try:
             global miniupnpc
             import miniupnpc
+            print(Fore.GREEN + "[INFO] 'miniupnpc' successfully imported." + Style.RESET_ALL)
         except ImportError:
             print(Fore.RED + "[ERROR] Failed to import 'miniupnpc' after installation." + Style.RESET_ALL)
             exit(1)
