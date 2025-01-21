@@ -35,62 +35,63 @@ def check_dependency():
             sys.exit(1)
 
 def detect_environment_and_install():
-    """Detect the environment and install nmap if necessary."""
+    """Detect the environment and install necessary dependencies."""
     try:
-        log_and_print("Detecting environment...", level="INFO")
+        logging.info("Detecting environment...", level="INFO")
 
         # Detect platform
         system = platform.system().lower()
-        log_and_print(f"Operating System: {system}", level="INFO")
+        logging.info(f"Operating System: {system}", level="INFO")
 
         if system == "linux":
             # Check for Termux environment
             if "com.termux" in os.environ.get("PREFIX", ""):
-                log_and_print("Termux environment detected. Installing nmap...", level="INFO")
-                subprocess.run(["pkg", "install", "-y", "nmap"], check=True)
+                logging.info("Termux environment detected. Installing dependencies...", level="INFO")
+                subprocess.run(["pkg", "install", "-y", "python", "pip"], check=True)
             else:
                 # Check Linux distribution using lsb_release
                 try:
                     distro = subprocess.check_output(["lsb_release", "-is"], text=True).strip().lower()
                 except FileNotFoundError:
-                    log_and_print("'lsb_release' command not found. Unable to determine Linux distribution.", level="ERROR")
+                    logging.info("'lsb_release' command not found. Unable to determine Linux distribution.", level="ERROR")
                     sys.exit(1)
 
-                log_and_print(f"Detected Linux Distribution: {distro}", level="INFO")
+                logging.info(f"Detected Linux Distribution: {distro}", level="INFO")
 
                 if "ubuntu" in distro or "debian" in distro:
-                    log_and_print("Ubuntu/Debian detected. Installing nmap...", level="INFO")
-                    subprocess.run(["sudo", "apt", "install", "-y", "nmap"], check=True)
+                    logging.info("Ubuntu/Debian detected. Installing dependencies...", level="INFO")
+                    subprocess.run(["sudo", "apt", "update"], check=True)
+                    subprocess.run(["sudo", "apt", "install", "-y", "python3", "python3-pip"], check=True)
                 elif "arch" in distro:
-                    log_and_print("Arch Linux detected. Installing nmap...", level="INFO")
-                    subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "nmap"], check=True)
+                    logging.info("Arch Linux detected. Installing dependencies...", level="INFO")
+                    subprocess.run(["sudo", "pacman", "-S", "--noconfirm", "python", "python-pip"], check=True)
                 elif "fedora" in distro or "redhat" in distro:
-                    log_and_print("Fedora/RedHat detected. Installing nmap...", level="INFO")
-                    subprocess.run(["sudo", "dnf", "install", "-y", "nmap"], check=True)
+                    logging.info("Fedora/RedHat detected. Installing dependencies...", level="INFO")
+                    subprocess.run(["sudo", "dnf", "install", "-y", "python3", "python3-pip"], check=True)
                 else:
-                    log_and_print("Unsupported Linux distribution. Please install nmap manually.", level="ERROR")
+                    logging.info("Unsupported Linux distribution. Please install dependencies manually.", level="ERROR")
                     sys.exit(1)
 
         elif system == "darwin":
             # macOS
-            log_and_print("macOS detected. Installing nmap via Homebrew...", level="INFO")
-            subprocess.run(["brew", "install", "nmap"], check=True)
+            logging.info("macOS detected. Installing dependencies via Homebrew...", level="INFO")
+            subprocess.run(["brew", "install", "python", "pip"], check=True)
 
         elif system == "windows":
             # Windows
-            log_and_print("Windows detected. Checking for nmap installation...", level="INFO")
-            if not shutil.which("nmap"):
-                log_and_print("nmap not found. Please download and install it from https://nmap.org/download.html", level="ERROR")
+            logging.info("Windows detected. Checking for Python installation...", level="INFO")
+            if not shutil.which("python") and not shutil.which("python3"):
+                logging.info("Python not found. Please download and install it from https://www.python.org/.", level="ERROR")
                 sys.exit(1)
 
         else:
-            log_and_print("Unsupported system. Please install nmap manually.", level="ERROR")
+            llogging.info("Unsupported system. Please install dependencies manually.", level="ERROR")
             sys.exit(1)
 
-        log_and_print("nmap installed successfully.", level="INFO")
+        logging.info("Dependencies installed successfully.", level="INFO")
 
     except subprocess.CalledProcessError as e:
-        log_and_print(f"Failed to install nmap: {e}", level="ERROR")
+        logging.info(f"Failed to install dependencies: {e}", level="ERROR")
         sys.exit(1)
 
 def network_speed_test():
