@@ -85,13 +85,13 @@ def filter_third_party_imports(imports):
 def detect_environment_and_install(package):
     """Install a package based on the detected environment."""
     try:
-        if "termux" in os.getenv("PREFIX", ""):
+        if "com.termux" in os.getenv("PREFIX", ""):  # Detect Termux environment
             subprocess.check_call(["pkg", "install", "-y", package])
-        elif "ubuntu" in distro.id() or "debian" in distro.id():
+        elif "ubuntu" in distro.id() or "debian" in distro.id():  # Detect Ubuntu/Debian
             subprocess.check_call(["sudo", "apt", "install", "-y", f"python3-{package}"])
-        elif platform.system() == "Windows":
+        elif platform.system() == "Windows":  # Detect Windows
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        else:
+        else:  # Default to pip for other environments
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
     except subprocess.CalledProcessError as e:
         error_message = f"Failed to install {package}: {e}"
