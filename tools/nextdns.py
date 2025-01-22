@@ -30,12 +30,14 @@ def install_nextdns():
     log_and_print("Installing NextDNS CLI...")
     try:
         subprocess.run(
-            ["sudo", "curl", "-sL", "https://nextdns.io/install", "|", "sh"], 
-            shell=True, check=True
+            "curl -sL https://nextdns.io/install | sudo sh",
+            shell=True,
+            check=True
         )
         log_and_print("NextDNS CLI installed successfully.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"Installation failed: {e}", level="ERROR")
+
 
 # Function to install miniupnpc (if required)
 def install_miniupnpc():
