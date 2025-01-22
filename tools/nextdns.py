@@ -30,8 +30,8 @@ def install_nextdns():
     log_and_print("Installing NextDNS CLI...")
     try:
         subprocess.run(
-            ["sh", "-c", "$(curl -sL https://nextdns.io/install)"],
-            check=True,
+            ["sudo", "curl", "-sL", "https://nextdns.io/install", "|", "sh"], 
+            shell=True, check=True
         )
         log_and_print("NextDNS CLI installed successfully.")
     except subprocess.CalledProcessError as e:
