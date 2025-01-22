@@ -86,7 +86,8 @@ def detect_environment_and_install(package):
     """Install a package based on the detected environment."""
     try:
         if "com.termux" in os.getenv("PREFIX", ""):  # Detect Termux environment
-            subprocess.check_call(["pkg", "install", "-y", package])
+            # Use pip to install Python packages in Termux
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
         elif "ubuntu" in distro.id() or "debian" in distro.id():  # Detect Ubuntu/Debian
             subprocess.check_call(["sudo", "apt", "install", "-y", f"python3-{package}"])
         elif platform.system() == "Windows":  # Detect Windows
