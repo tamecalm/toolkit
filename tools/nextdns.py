@@ -73,13 +73,19 @@ def install_miniupnpc():
 def configure_dot():
     log_and_print("Configuring DNS over TLS (DoT)...")
     try:
-        # Assuming the user is using NextDNS with profile ID
-        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
-        subprocess.run(["nextdns", "set", "dns-over-tls=true"], check=True)
-        subprocess.run(["nextdns", "set", f"profile={profile_id}"], check=True)
+        # Prompting for the NextDNS Profile ID
+        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}").strip()
+        if not profile_id:
+            log_and_print("Profile ID cannot be empty.", level="ERROR")
+            return
+        
+        # Setting DNS over TLS and configuring the profile
+        subprocess.run(["sudo", "nextdns", "set", "dns-over-tls=true"], check=True)
+        subprocess.run(["sudo", "nextdns", "set", f"profile={profile_id}"], check=True)
         log_and_print("DNS over TLS (DoT) configured successfully.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"DNS over TLS (DoT) configuration failed: {e}", level="ERROR")
+
 
 # Function to activate NextDNS with Profile ID
 def activate_nextdns(profile_id):
@@ -98,7 +104,8 @@ def activate_nextdns(profile_id):
 def deactivate_nextdns():
     log_and_print("Deactivating NextDNS...")
     try:
-        subprocess.run(["nextdns", "deactivate"], check=True)
+        # Using sudo to ensure required privileges for deactivation
+        subprocess.run(["sudo", "nextdns", "deactivate"], check=True)
         log_and_print("NextDNS is now deactivated.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"Deactivation failed: {e}", level="ERROR")
@@ -107,21 +114,31 @@ def deactivate_nextdns():
 def verify_dot():
     log_and_print("Verifying DoT (DNS over TLS)...")
     try:
-        result = subprocess.run(["nextdns", "log"], stdout=subprocess.PIPE, text=True)
+        # Fetching logs to verify DoT status
+        result = subprocess.run(["sudo", "nextdns", "log"], stdout=subprocess.PIPE, text=True, check=True)
         if "DoT" in result.stdout:
             log_and_print("DoT is active and running.")
         else:
-            log_and_print("DoT is not active. Please check your configuration.", level="ERROR")
+            log_and_print("DoT is not active. Please check your configuration.", level="WARNING")
     except subprocess.CalledProcessError as e:
         log_and_print(f"Unable to verify DoT: {e}", level="ERROR")
+    except Exception as e:
+        log_and_print(f"An unexpected error occurred during DoT verification: {e}", level="ERROR")
+
 
 # Function to view NextDNS logs
 def view_nextdns_logs():
     log_and_print("Displaying NextDNS logs...")
     try:
-        subprocess.run(["nextdns", "log"])
+        # Running the command to view logs
+        subprocess.run(["sudo", "nextdns", "log"], check=True)
     except subprocess.CalledProcessError as e:
         log_and_print(f"Unable to display logs: {e}", level="ERROR")
+    except FileNotFoundError:
+        log_and_print("The 'nextdns' command was not found. Ensure NextDNS CLI is installed.", level="ERROR")
+    except Exception as e:
+        log_and_print(f"An unexpected error occurred while displaying logs: {e}", level="ERROR")
+
 
 # Function to detect environment and install necessary tools
 def detect_environment_and_install():
