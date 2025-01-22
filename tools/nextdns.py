@@ -73,18 +73,20 @@ def install_miniupnpc():
 def configure_dot():
     log_and_print("Configuring DNS over TLS (DoT)...")
     try:
-        # Prompting for the NextDNS Profile ID
-        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}").strip()
-        if not profile_id:
-            log_and_print("Profile ID cannot be empty.", level="ERROR")
-            return
-        
-        # Setting DNS over TLS and configuring the profile
-        subprocess.run(["sudo", "nextdns", "set", "dns-over-tls=true"], check=True)
-        subprocess.run(["sudo", "nextdns", "set", f"profile={profile_id}"], check=True)
+        # Assuming the user is using NextDNS with profile ID
+        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
+
+        # Configure DNS over TLS
+        subprocess.run(["sudo", "nextdns", "config", "dns-over-tls=true"], check=True)
+
+        # Set the profile ID
+        subprocess.run(["sudo", "nextdns", "config", f"profile={profile_id}"], check=True)
+
         log_and_print("DNS over TLS (DoT) configured successfully.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"DNS over TLS (DoT) configuration failed: {e}", level="ERROR")
+    except Exception as e:
+        log_and_print(f"An unexpected error occurred during DoT configuration: {e}", level="ERROR")
 
 
 # Function to activate NextDNS with Profile ID
