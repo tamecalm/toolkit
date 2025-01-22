@@ -71,25 +71,28 @@ def install_miniupnpc():
 
 # Function to configure DNS over TLS (DoT)
 def configure_dot():
-    log_and_print("Configuring DNS over TLS (DoT) using setup-router...")
+    log_and_print("Configuring NextDNS with client info reporting and auto-activation...")
     try:
         # Assuming the user is using NextDNS with profile ID
-        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
+        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for configuration: {RESET}")
         
-        # Set the profile ID correctly using the -profile flag
+        # Set the profile ID using the -profile flag
         subprocess.run(["sudo", "nextdns", "config", "set", "-profile", profile_id], check=True)
 
-        # Enable automatic router setup for DNS over TLS
-        subprocess.run(["sudo", "nextdns", "config", "set", "-setup-router"], check=True)
+        # Enable client info reporting
+        subprocess.run(["sudo", "nextdns", "config", "set", "-report-client-info"], check=True)
+
+        # Enable auto-activation
+        subprocess.run(["sudo", "nextdns", "config", "set", "-auto-activate"], check=True)
 
         # Activate the changes
-        subprocess.run(["sudo", "nextdns", "activate"], check=True)
+        # subprocess.run(["sudo", "nextdns", "activate"], check=True)
 
-        log_and_print("DNS over TLS (DoT) configured and activated successfully using -setup-router.")
+        log_and_print("NextDNS configured successfully with client info reporting and auto-activation.")
     except subprocess.CalledProcessError as e:
-        log_and_print(f"DNS over TLS (DoT) configuration failed: {e}", level="ERROR")
+        log_and_print(f"NextDNS configuration failed: {e}", level="ERROR")
     except Exception as e:
-        log_and_print(f"An unexpected error occurred during DoT configuration: {e}", level="ERROR")
+        log_and_print(f"An unexpected error occurred during NextDNS configuration: {e}", level="ERROR")
 
 
 # Function to activate NextDNS with Profile ID
