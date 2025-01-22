@@ -85,7 +85,10 @@ def configure_dot():
 def activate_nextdns(profile_id):
     log_and_print(f"Activating NextDNS with Profile ID: {profile_id}...")
     try:
-        subprocess.run(["nextdns", "activate", f"--profile={profile_id}"], check=True)
+        subprocess.run(
+            ["sudo", "nextdns", "activate", f"--profile={profile_id}"],
+            check=True
+        )
         log_and_print("NextDNS is now active.")
         configure_dot()  # Configure DNS over TLS (DoT) after activation
     except subprocess.CalledProcessError as e:
