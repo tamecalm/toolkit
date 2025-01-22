@@ -71,7 +71,7 @@ def install_miniupnpc():
 
 # Function to configure DNS over TLS (DoT)
 def configure_dot():
-    log_and_print("Configuring DNS over TLS (DoT)...")
+    log_and_print("Configuring DNS over TLS (DoT) using setup-router...")
     try:
         # Assuming the user is using NextDNS with profile ID
         profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
@@ -79,13 +79,13 @@ def configure_dot():
         # Set the profile ID correctly using the -profile flag
         subprocess.run(["sudo", "nextdns", "config", "set", "-profile", profile_id], check=True)
 
-        # Enable DNS over TLS by configuring the correct resolver and protocol
-        subprocess.run(["sudo", "nextdns", "config", "set", "resolver=dns-over-https"], check=True)
+        # Enable automatic router setup for DNS over TLS
+        subprocess.run(["sudo", "nextdns", "config", "set", "-setup-router"], check=True)
 
         # Activate the changes
         subprocess.run(["sudo", "nextdns", "activate"], check=True)
 
-        log_and_print("DNS over TLS (DoT) configured and activated successfully.")
+        log_and_print("DNS over TLS (DoT) configured and activated successfully using -setup-router.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"DNS over TLS (DoT) configuration failed: {e}", level="ERROR")
     except Exception as e:
