@@ -4,6 +4,13 @@ import sys
 import subprocess
 import sysconfig
 import time
+import platform
+
+try:
+    import distro
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "distro"])
+    import distro
 
 # Define the directory where your Python scripts are located
 scripts_directory = "tools"  # Update this to the directory containing your Python scripts
@@ -15,7 +22,6 @@ standard_libs = set(sys.builtin_module_names)  # Built-in modules are included h
 standard_libs.update({
     "datetime", "math", "os", "sys", "logging", "json", "socket", "platform", "unittest", "collections", "subprocess",
     "argparse", "csv", "hashlib", "http", "itertools", "pickle", "random", "re", "struct", "time", "uuid", "shutil", "zipfile"
-    # Add any additional modules from Python's standard library here
 })
 
 # List of problematic packages to skip during installation
@@ -23,7 +29,7 @@ problematic_packages = {"miniupnpc"}  # Add known problematic packages here
 
 # Ethical hacker theme style for output
 def print_banner():
-    os.system("clear")  # Clear the terminal screen
+    os.system("clear" if os.name == "posix" else "cls")  # Clear the terminal screen
     print("\033[92m")
     print("=" * 60)
     print("   🔍  Python Dependency Analyzer & Installer  💻")
@@ -80,30 +86,51 @@ def filter_third_party_imports(imports):
     """Filter out the standard library modules from the imports."""
     return {pkg for pkg in imports if pkg not in standard_libs}
 
+def detect_environment():
+    """Detect the current environment and return the appropriate package manager command."""
+    if "com.termux" in os.getenv("PREFIX", ""):
+        return "pkg install -y python3-pip"
+    elif os.name == "nt":
+        return "windows"
+    elif "ubuntu" in distro.id() or "debian" in distro.id():
+        return "sudo apt install -y python3-pip"
+    elif "arch" in distro.id() or "manjaro" in distro.id():
+        return "sudo pacman -S --noconfirm python-pip"
+    elif "fedora" in distro.id() or "centos" in distro.id():
+        return "sudo dnf install -y python3-pip"
+    else:
+        return None
+
+def install_package(package):
+    """Install a single Python package using pip."""
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        log_info(f"Successfully installed {package}.")
+    except subprocess.CalledProcessError as e:
+        error_message = f"Failed to install {package}: {e}"
+        print(f"\033[91m{error_message}\033[0m")
+        log_error(error_message)
+
 def install_requirements():
     """Install dependencies from requirements.txt."""
     try:
         print("\033[93mInstalling dependencies...\033[0m")
         with open("requirements.txt", "r") as req_file:
             requirements = [line.strip() for line in req_file if line.strip()]
-        
+
         total_requirements = len(requirements)
         for i, package in enumerate(requirements, start=1):
             progress_bar(total_requirements, i)
-            
+
             if package in problematic_packages:
                 warning_message = f"Skipping {package} due to known issues."
                 print(f"\n\033[93m{warning_message}\033[0m")
                 log_info(warning_message)
                 continue
-            
-            try:
-                subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            except subprocess.CalledProcessError as e:
-                error_message = f"Failed to install {package}: {e}"
-                print(f"\n\033[91m{error_message}\033[0m")
-                log_error(error_message)
+
+            install_package(package)
             time.sleep(0.1)
+
         print("\033[92mDependencies installed successfully!\033[0m")
         log_info("Dependencies installed successfully.")
     except Exception as e:
@@ -128,6 +155,18 @@ try:
 
     print(f"\033[94mGenerated requirements.txt with {len(third_party_imports)} unique dependencies.\033[0m")
     log_info(f"Generated requirements.txt with {len(third_party_imports)} unique dependencies.")
+
+    package_manager_cmd = detect_environment()
+
+    if not package_manager_cmd:
+        print("\033[91mCould not detect a suitable package manager for this environment.\033[0m")
+        log_error("No suitable package manager detected.")
+    elif package_manager_cmd == "windows":
+        print("\033[91mFor Windows, ensure Python is installed and use pip directly.\033[0m")
+        log_info("Detected Windows environment. Manual pip usage suggested.")
+    else:
+        print(f"\033[93mEnsure pip is installed: {package_manager_cmd}\033[0m")
+        os.system(package_manager_cmd)
 
     if third_party_imports:
         install_requirements()
