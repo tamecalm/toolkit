@@ -77,7 +77,7 @@ def configure_dot():
         profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
         
         # Set the profile ID correctly using the -profile flag
-        subprocess.run(["sudo", "nextdns", "config", "set", f"profile={profile_id}"], check=True)
+        subprocess.run(["sudo", "nextdns", "config", "set", "-profile", profile_id], check=True)
 
         # Now enable DNS over TLS (DoT)
         subprocess.run(["sudo", "nextdns", "config", "set", "dns-over-tls=true"], check=True)
