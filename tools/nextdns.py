@@ -70,21 +70,42 @@ def install_miniupnpc():
         log_and_print(f"Failed to install miniupnpc: {e}", level="ERROR")
 
 # Function to configure DNS over TLS (DoT)
-def configure_dot():
-    log_and_print("Configuring DNS with NextDNS...")
+import subprocess
 
+# Define the colors for print formatting (assuming you're using some constants)
+CYAN = '\033[96m'
+RESET = '\033[0m'
+
+def log_and_print(message, level="INFO"):
+    print(f"[{level}] {message}")
+
+def configure_dot():
+    log_and_print("Configuring NextDNS with client info reporting, auto-activation, and router setup...")
     try:
-        # Run the NextDNS config wizard to set up DNS configuration
-        subprocess.run(["sudo", "nextdns", "config", "wizard"], check=True)
+        # Assuming the user is using NextDNS with profile ID
+        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for configuration: {RESET}")
+        
+        # Set the profile ID using the -profile flag
+        subprocess.run(["sudo", "nextdns", "config", "set", "-profile", profile_id], check=True)
+
+        # Enable client info reporting
+        subprocess.run(["sudo", "nextdns", "config", "set", "-report-client-info"], check=True)
+
+        # Enable auto-activation
+        subprocess.run(["sudo", "nextdns", "config", "set", "-auto-activate"], check=True)
+
+        # Set up the router (assuming the user wants to automatically configure NextDNS for a router setup)
+        subprocess.run(["sudo", "nextdns", "config", "set", "-setup-router"], check=True)
 
         # Activate the changes
         subprocess.run(["sudo", "nextdns", "activate"], check=True)
 
-        log_and_print("NextDNS configured and activated successfully.")
+        log_and_print("NextDNS configured successfully with client info reporting, auto-activation, and router setup.")
     except subprocess.CalledProcessError as e:
-        log_and_print(f"DNS configuration failed: {e}", level="ERROR")
+        log_and_print(f"NextDNS configuration failed: {e}", level="ERROR")
     except Exception as e:
-        log_and_print(f"An unexpected error occurred: {e}", level="ERROR")
+        log_and_print(f"An unexpected error occurred during NextDNS configuration: {e}", level="ERROR")
+
 
 
 # Function to activate NextDNS with Profile ID
