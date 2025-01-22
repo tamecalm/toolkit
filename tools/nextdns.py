@@ -75,14 +75,17 @@ def configure_dot():
     try:
         # Assuming the user is using NextDNS with profile ID
         profile_id = input(f"{CYAN}Enter NextDNS Profile ID for DoT configuration: {RESET}")
-
-        # Set the profile ID for NextDNS
+        
+        # Set the profile ID correctly using the -profile flag
         subprocess.run(["sudo", "nextdns", "config", "set", f"profile={profile_id}"], check=True)
 
-        # Enable DNS over TLS (DoT) using the 'config set' command (ensure 'nextdns' is installed and working correctly)
-        subprocess.run(["sudo", "nextdns", "config", "set", "report-client-info=true"], check=True)
+        # Now enable DNS over TLS (DoT)
+        subprocess.run(["sudo", "nextdns", "config", "set", "dns-over-tls=true"], check=True)
 
-        log_and_print("DNS over TLS (DoT) configured successfully.")
+        # Activate the changes
+        subprocess.run(["sudo", "nextdns", "activate"], check=True)
+
+        log_and_print("DNS over TLS (DoT) configured and activated successfully.")
     except subprocess.CalledProcessError as e:
         log_and_print(f"DNS over TLS (DoT) configuration failed: {e}", level="ERROR")
     except Exception as e:
