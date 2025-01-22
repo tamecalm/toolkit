@@ -71,28 +71,20 @@ def install_miniupnpc():
 
 # Function to configure DNS over TLS (DoT)
 def configure_dot():
-    log_and_print("Configuring NextDNS with client info reporting and auto-activation...")
+    log_and_print("Configuring DNS with NextDNS...")
+
     try:
-        # Assuming the user is using NextDNS with profile ID
-        profile_id = input(f"{CYAN}Enter NextDNS Profile ID for configuration: {RESET}")
-        
-        # Set the profile ID using the -profile flag
-        subprocess.run(["sudo", "nextdns", "config", "set", "-profile", profile_id], check=True)
-
-        # Enable client info reporting
-        subprocess.run(["sudo", "nextdns", "config", "set", "-report-client-info"], check=True)
-
-        # Enable auto-activation
-        subprocess.run(["sudo", "nextdns", "config", "set", "-auto-activate"], check=True)
+        # Run the NextDNS config wizard to set up DNS configuration
+        subprocess.run(["sudo", "nextdns", "config", "wizard"], check=True)
 
         # Activate the changes
-        # subprocess.run(["sudo", "nextdns", "activate"], check=True)
+        subprocess.run(["sudo", "nextdns", "activate"], check=True)
 
-        log_and_print("NextDNS configured successfully with client info reporting and auto-activation.")
+        log_and_print("NextDNS configured and activated successfully.")
     except subprocess.CalledProcessError as e:
-        log_and_print(f"NextDNS configuration failed: {e}", level="ERROR")
+        log_and_print(f"DNS configuration failed: {e}", level="ERROR")
     except Exception as e:
-        log_and_print(f"An unexpected error occurred during NextDNS configuration: {e}", level="ERROR")
+        log_and_print(f"An unexpected error occurred: {e}", level="ERROR")
 
 
 # Function to activate NextDNS with Profile ID
