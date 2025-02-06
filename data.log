@@ -2,3 +2,64 @@
 2025-01-21 09:31:51 - ERROR: Error parsing script tools\logs_viewer.py: 'charmap' codec can't decode byte 0x90 in position 631: character maps to <undefined>
 2025-01-21 09:31:52 - INFO: Generated requirements.txt with 4 unique dependencies.
 2025-01-21 09:34:03 - ERROR: Error occurred during installation: Command '['C:\\Users\\GWX Project\\AppData\\Local\\Microsoft\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\python.exe', '-m', 'pip', 'install', 'miniupnpc', '--no-binary', ':all:']' returned non-zero exit status 1.
+2025-02-05 13:34:45,946 - INFO - Detecting environment...
+2025-02-05 13:34:45,986 - INFO - Operating System: linux
+2025-02-05 13:34:46,151 - INFO - Detected Linux Distribution: ubuntu
+2025-02-05 13:34:46,151 - INFO - Ubuntu/Debian detected. Installing dependencies...
+2025-02-05 13:34:56,011 - INFO - Dependencies installed successfully.
+2025-02-05 13:35:07,756 - ERROR - Failed to install speedtest-cli. Please try installing it manually.
+2025-02-05 13:35:30,784 - INFO - System Info script started.
+2025-02-05 13:35:30,785 - INFO - psutil is already installed.
+2025-02-05 13:35:30,785 - INFO - Detecting environment...
+2025-02-05 13:35:30,785 - INFO - Operating System: linux
+2025-02-05 13:35:30,908 - INFO - Ubuntu/Debian detected. Installing necessary tools...
+2025-02-05 13:35:32,463 - INFO - Environment detected and tools installed successfully.
+2025-02-05 13:35:32,463 - INFO - Fetching CPU and memory usage...
+2025-02-05 13:35:33,495 - INFO - CPU Usage: 28.4%
+2025-02-05 13:35:33,495 - INFO - Memory Usage: 74.5%
+2025-02-05 13:35:33,495 - INFO - Fetching disk usage details...
+2025-02-05 13:35:33,496 - INFO - Total: 465.71 GB, Used: 69.95 GB, Free: 395.76 GB
+2025-02-05 13:35:33,496 - INFO - Fetching network details...
+2025-02-05 13:35:33,547 - INFO - eth1: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.30.96.1  netmask 255.255.240.0  broadcast 172.30.111.255
+        inet6 fe80::22bf:d561:61cb:5b01  prefixlen 64  scopeid 0xfd<compat,link,site,host>
+        ether 00:15:5d:c2:1e:8f  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 1500
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0xfe<compat,link,site,host>
+        loop  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+wifi0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.100.43  netmask 255.255.255.0  broadcast 192.168.100.255
+        inet6 fe80::cbfa:1289:169c:7d6a  prefixlen 64  scopeid 0xfd<compat,link,site,host>
+        ether a0:a8:cd:9b:95:33  (Ethernet)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+
+2025-02-05 13:35:33,548 - INFO - Fetching OS details...
+2025-02-05 13:35:33,784 - INFO - OS: Linux, Version: #4355-Microsoft Thu Apr 12 17:37:00 PST 2024, Architecture: 64bit
+2025-02-05 13:35:33,785 - INFO - Battery -> Percentage: 99%, Charging: No
+2025-02-05 13:35:33,785 - INFO - System Info script finished.
+2025-02-05 13:35:53 - INFO: Generated requirements.txt with 5 unique dependencies.
+2025-02-05 13:35:56 - INFO: Skipping miniupnpc due to known issues.
+2025-02-05 13:35:59 - INFO: Dependencies installed successfully.
+2025-02-05 13:36:02,983 - INFO - Ping Utility started.
+2025-02-05 13:36:02,983 - INFO - Detecting environment...
+2025-02-05 13:36:02,984 - INFO - Operating System: linux
+2025-02-05 13:36:03,084 - INFO - Ubuntu/Debian detected. Installing necessary tools...
+2025-02-05 13:36:04,392 - INFO - Environment detected and tools verified successfully.
+2025-02-05 13:36:10,186 - INFO - Pinging host: bingpay.ng with 4 requests...
+2025-02-05 13:36:13,780 - INFO - Ping successful for host: bingpay.ng
+2025-02-05 13:36:13,782 - INFO - Ping Utility finished.
