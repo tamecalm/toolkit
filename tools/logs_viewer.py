@@ -1,7 +1,6 @@
 import os
 import platform
 import subprocess
-import shutil
 import logging
 import sys
 from shutil import which
